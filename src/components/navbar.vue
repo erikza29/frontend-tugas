@@ -38,21 +38,35 @@
 <script setup>
 import { computed, ref, onMounted, onBeforeUnmount } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import api from "@/API/api";
 
 const route = useRoute();
 const router = useRouter();
 
-// Data reactive
 const role = ref((localStorage.getItem("role") || "").toLowerCase().trim());
 const avatarUrl = ref(localStorage.getItem("avatar_url") || "https://i.pravatar.cc/150?img=3");
 
-// Navbar hanya tampil di halaman tertentu
 const showNavbar = computed(() => {
   const hiddenPages = ["/login", "/register", "/pilih_role"];
   return !hiddenPages.includes(route.path);
 });
 
-// Logout function
+// Ambil data profil dari backend
+const fetchProfil = async () => {
+  try {
+    const res = await api.get("/profil");
+    if (res.data.success) {
+      const imgUrl = res.data.data.gambar_url || "https://i.pravatar.cc/150?img=3";
+      avatarUrl.value = imgUrl;
+      localStorage.setItem("avatar_url", imgUrl);
+      window.dispatchEvent(new Event("avatar-changed"));
+    }
+  } catch (err) {
+    console.error("Gagal mengambil profil:", err);
+  }
+};
+
+// Logout
 const logout = () => {
   localStorage.clear();
   role.value = null;
@@ -60,7 +74,7 @@ const logout = () => {
   router.push("/login");
 };
 
-// Update data dari localStorage
+// Sinkronisasi role & avatar
 const updateRole = () => {
   role.value = (localStorage.getItem("role") || "").toLowerCase().trim();
 };
@@ -68,10 +82,11 @@ const updateAvatar = () => {
   avatarUrl.value = localStorage.getItem("avatar_url") || "https://i.pravatar.cc/150?img=3";
 };
 
-// Event listener untuk sinkronisasi real-time
 onMounted(() => {
   updateRole();
   updateAvatar();
+  fetchProfil();
+
   window.addEventListener("role-changed", updateRole);
   window.addEventListener("avatar-changed", updateAvatar);
   window.addEventListener("storage", () => {
@@ -85,6 +100,7 @@ onBeforeUnmount(() => {
   window.removeEventListener("avatar-changed", updateAvatar);
 });
 </script>
+
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&display=swap');
