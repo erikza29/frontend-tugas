@@ -202,13 +202,8 @@ export default {
     },
 
     lihatProfil(userId) {
-  this.showModal = false // opsional: tutup modal setelah klik
-  this.$router.push({
-    path: `/profil/${userId}`,
-    query: { loker_id: this.modalLoker.id }, // kirim juga id loker
-  })
-},
-
+      this.$router.push(`/profil/${userId}`);
+    },
   },
 };
 </script>
