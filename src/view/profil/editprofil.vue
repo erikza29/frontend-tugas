@@ -3,7 +3,7 @@
     <div class="profil-container">
       <h1 class="title">Edit Profil</h1>
 
-      <!-- Upload Foto -->
+      <!-- Foto Profil -->
       <div class="foto-profil text-center">
         <img
           v-if="preview || form.gambar_url"
@@ -12,25 +12,29 @@
           class="profil-img"
         />
         <div v-else class="profil-default">Belum ada foto</div>
-        <input type="file" @change="onFileChange" class="file-input" />
+        <label class="upload-label">
+          <input type="file" accept="image/*" @change="onFileChange" hidden />
+          <span class="upload-btn">Pilih Foto</span>
+        </label>
       </div>
 
-      <!-- Form -->
+      <!-- Form Profil -->
       <div class="info-profil">
         <label>Nama</label>
-        <input v-model="form.nama" type="text" class="input" />
+        <input v-model="form.nama" type="text" class="input" placeholder="Nama lengkap" />
 
         <label>Deskripsi</label>
-        <textarea v-model="form.deskripsi" class="input"></textarea>
+        <textarea
+          v-model="form.deskripsi"
+          class="input"
+          placeholder="Ceritakan sedikit tentang dirimu..."
+        ></textarea>
       </div>
 
-      <!-- Button Save -->
-      <button
-        @click="saveProfil"
-        class="edit-btn"
-        :disabled="loading"
-      >
-        {{ loading ? "Menyimpan..." : "Simpan" }}
+      <!-- Tombol Simpan -->
+      <button @click="saveProfil" class="edit-btn" :disabled="loading">
+        <span v-if="loading">Menyimpan...</span>
+        <span v-else>Simpan Profil</span>
       </button>
     </div>
   </div>
@@ -54,69 +58,54 @@ export default {
     };
   },
   async mounted() {
-    await this.getProfil();
+    this.getProfil();
   },
   methods: {
     async getProfil() {
       try {
-        const res = await api.get("/profil", {
+        const { data } = await api.get("/profil", {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
-
-        if (res.data?.data) {
-          this.form = { ...res.data.data, foto: null };
-        }
+        if (data?.data) this.form = { ...data.data, foto: null };
       } catch (err) {
         console.error("Error getProfil:", err);
       }
     },
-
     onFileChange(e) {
       const file = e.target.files[0];
-      if (file) {
-        this.preview = URL.createObjectURL(file);
-        this.form.foto = file;
-      }
+      if (!file) return;
+      this.preview = URL.createObjectURL(file);
+      this.form.foto = file;
     },
-
     async saveProfil() {
       this.loading = true;
       try {
-        const formData = new FormData();
-        formData.append("nama", this.form.nama);
-        formData.append("deskripsi", this.form.deskripsi);
-        if (this.form.foto) {
-          formData.append("foto", this.form.foto);
-        }
+        const fd = new FormData();
+        fd.append("nama", this.form.nama);
+        fd.append("deskripsi", this.form.deskripsi);
+        if (this.form.foto) fd.append("foto", this.form.foto);
 
-        const res = await api.post("/profil", formData, {
+        const { data } = await api.post("/profil", fd, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
             "Content-Type": "multipart/form-data",
           },
         });
 
-        // ✅ Simpan avatar ke localStorage & trigger event navbar update
-        if (res.data?.data?.gambar_url) {
-          localStorage.setItem("avatar_url", res.data.data.gambar_url);
+        if (data?.data?.gambar_url) {
+          localStorage.setItem("avatar_url", data.data.gambar_url);
           window.dispatchEvent(new Event("avatar-changed"));
         }
 
-        // ✅ Redirect dengan delay kecil agar avatar sempat update
-        setTimeout(() => {
-          this.$router.push("/profil");
-        }, 200);
-
+        setTimeout(() => this.$router.push("/profil"), 200);
       } catch (error) {
-        if (error.response && error.response.status === 422) {
-          const errors = error.response.data.errors;
-          let messages = "";
-          for (const key in errors) {
-            messages += `${key}: ${errors[key].join(", ")}\n`;
-          }
-          alert("Gagal menyimpan profil:\n" + messages);
+        console.error("Error saveProfil:", error);
+        if (error.response?.status === 422) {
+          const msg = Object.entries(error.response.data.errors)
+            .map(([k, v]) => `${k}: ${v.join(", ")}`)
+            .join("\n");
+          alert("Gagal menyimpan profil:\n" + msg);
         } else {
-          console.error("Error saveProfil:", error);
           alert("Terjadi kesalahan saat menyimpan profil");
         }
       } finally {
@@ -131,75 +120,118 @@ export default {
 .profil-wrapper {
   display: flex;
   justify-content: center;
-  padding: 2rem;
+  padding: 2.5rem 1rem;
+  background: #f9fafb;
+  min-height: 100vh;
   font-family: "Poppins", sans-serif;
 }
+
 .profil-container {
   width: 100%;
-  max-width: 450px;
+  max-width: 480px;
   background: #fff;
   padding: 2rem;
-  border-radius: 14px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
 }
+
 .title {
   text-align: center;
-  font-size: 1.7rem;
+  font-size: 1.8rem;
   font-weight: 600;
-  margin-bottom: 1.5rem;
   color: #111827;
+  margin-bottom: 2rem;
 }
+
+.foto-profil {
+  text-align: center;
+}
+
 .profil-img {
   width: 130px;
   height: 130px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid #4F46E5;
-  margin: auto;
+  border: 3px solid #6366f1;
+  margin-bottom: 0.75rem;
 }
+
 .profil-default {
   width: 130px;
   height: 130px;
   border-radius: 50%;
-  background: #f3f4f6;
+  background: #e5e7eb;
   color: #6b7280;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: auto;
-  font-size: 0.9rem;
+  margin: 0 auto 0.75rem;
+  font-size: 0.95rem;
 }
-.file-input {
-  margin-top: 1rem;
-  display: block;
+
+.upload-label {
+  cursor: pointer;
 }
+
+.upload-btn {
+  display: inline-block;
+  background: #4f46e5;
+  color: #fff;
+  font-weight: 500;
+  padding: 0.5rem 1.25rem;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.upload-btn:hover {
+  background: #4338ca;
+}
+
 .info-profil {
-  margin-top: 1.5rem;
+  margin-top: 2rem;
 }
+
+label {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.3rem;
+}
+
 .input {
   width: 100%;
-  padding: 12px;
-  margin: 8px 0 16px;
+  padding: 0.75rem;
+  margin-bottom: 1.25rem;
   border: 1px solid #d1d5db;
   border-radius: 8px;
   font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
+
+.input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
 .edit-btn {
   width: 100%;
-  margin-top: 1.5rem;
-  padding: 12px;
-  background: #4F46E5;
+  padding: 0.9rem;
+  background: #4f46e5;
   color: white;
   font-weight: 600;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.1s;
+  transition: background 0.2s, transform 0.1s;
 }
+
 .edit-btn:hover:not(:disabled) {
-  background: #4338CA;
+  background: #4338ca;
   transform: scale(1.02);
 }
+
 .edit-btn:disabled {
   background: #a5b4fc;
   cursor: not-allowed;

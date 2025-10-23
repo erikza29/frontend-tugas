@@ -18,17 +18,19 @@ async function handleLogin() {
 
     const token = res.data.data.token;
     const role = res.data.data.role;
+    const userId = res.data.data.user.id; // ✅ simpan user_id
 
     if (!token) {
       alert("Token tidak ditemukan dari server!");
       return;
     }
 
-    // Simpan token & role
+    // ✅ Simpan token, role, dan user_id
     localStorage.setItem("token", token);
     localStorage.setItem("role", role);
+    localStorage.setItem("user_id", userId);
 
-    // 🔥 Ambil profil user langsung setelah login agar avatar langsung update
+    // ✅ Ambil profil user agar avatar langsung update
     try {
       const profilRes = await api.get("/profil", {
         headers: { Authorization: `Bearer ${token}` },
@@ -40,7 +42,7 @@ async function handleLogin() {
 
       localStorage.setItem("avatar_url", avatar);
 
-      // ✅ Trigger update navbar langsung
+      // ✅ Trigger update navbar
       window.dispatchEvent(new Event("avatar-changed"));
       window.dispatchEvent(new Event("role-changed"));
     } catch (err) {
