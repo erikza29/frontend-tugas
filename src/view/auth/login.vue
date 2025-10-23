@@ -17,16 +17,45 @@ async function handleLogin() {
     console.log("Login response:", res.data);
 
     const token = res.data.data.token;
+    const role = res.data.data.role;
+
     if (!token) {
       alert("Token tidak ditemukan dari server!");
       return;
     }
 
-    // Simpan token
+    // Simpan token & role
     localStorage.setItem("token", token);
+    localStorage.setItem("role", role);
 
-    // Redirect ke pilih role
-    router.push("/pilih_role");
+    // 🔥 Ambil profil user langsung setelah login agar avatar langsung update
+    try {
+      const profilRes = await api.get("/profil", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const avatar =
+        profilRes.data?.data?.gambar_url ||
+        "https://i.pravatar.cc/150?img=3";
+
+      localStorage.setItem("avatar_url", avatar);
+
+      // ✅ Trigger update navbar langsung
+      window.dispatchEvent(new Event("avatar-changed"));
+      window.dispatchEvent(new Event("role-changed"));
+    } catch (err) {
+      console.warn("Gagal ambil profil:", err);
+    }
+
+    // ✅ Arahkan sesuai role
+    if (role === "pekerja") {
+      router.push("/lokerlist");
+    } else if (role === "pemberi_kerja") {
+      router.push("/daftarloker");
+    } else {
+      router.push("/pilih_role");
+    }
+
   } catch (err) {
     console.error("Login error:", err.response?.data || err);
     alert(err.response?.data?.message || "Login gagal");
@@ -86,7 +115,6 @@ async function handleLogin() {
 <style scoped>
 @import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css");
 
-/* sama persis style login yang sebelumnya */
 .login-page {
   width: 100vw;
   height: 100vh;

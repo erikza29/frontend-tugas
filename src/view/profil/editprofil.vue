@@ -47,7 +47,7 @@ export default {
         nama: "",
         deskripsi: "",
         gambar_url: null,
-        foto: null, // file asli
+        foto: null,
       },
       preview: null,
       loading: false,
@@ -70,6 +70,7 @@ export default {
         console.error("Error getProfil:", err);
       }
     },
+
     onFileChange(e) {
       const file = e.target.files[0];
       if (file) {
@@ -77,47 +78,51 @@ export default {
         this.form.foto = file;
       }
     },
+
     async saveProfil() {
-  this.loading = true;
-  try {
-    const formData = new FormData();
-    formData.append("nama", this.form.nama);
-    formData.append("deskripsi", this.form.deskripsi);
-    if (this.form.foto) {
-      formData.append("foto", this.form.foto);
-    }
+      this.loading = true;
+      try {
+        const formData = new FormData();
+        formData.append("nama", this.form.nama);
+        formData.append("deskripsi", this.form.deskripsi);
+        if (this.form.foto) {
+          formData.append("foto", this.form.foto);
+        }
 
-    const res = await api.post("/profil", formData, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-        "Content-Type": "multipart/form-data",
-      },
-    });
+        const res = await api.post("/profil", formData, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "multipart/form-data",
+          },
+        });
 
-    // ✅ Simpan avatar ke localStorage & trigger event
-    if (res.data?.data?.gambar_url) {
-      localStorage.setItem("avatar_url", res.data.data.gambar_url);
-      window.dispatchEvent(new Event("avatar-changed"));
-    }
+        // ✅ Simpan avatar ke localStorage & trigger event navbar update
+        if (res.data?.data?.gambar_url) {
+          localStorage.setItem("avatar_url", res.data.data.gambar_url);
+          window.dispatchEvent(new Event("avatar-changed"));
+        }
 
-    this.$router.push("/profil");
-  } catch (error) {
-    if (error.response && error.response.status === 422) {
-      const errors = error.response.data.errors;
-      let messages = "";
-      for (const key in errors) {
-        messages += `${key}: ${errors[key].join(", ")}\n`;
+        // ✅ Redirect dengan delay kecil agar avatar sempat update
+        setTimeout(() => {
+          this.$router.push("/profil");
+        }, 200);
+
+      } catch (error) {
+        if (error.response && error.response.status === 422) {
+          const errors = error.response.data.errors;
+          let messages = "";
+          for (const key in errors) {
+            messages += `${key}: ${errors[key].join(", ")}\n`;
+          }
+          alert("Gagal menyimpan profil:\n" + messages);
+        } else {
+          console.error("Error saveProfil:", error);
+          alert("Terjadi kesalahan saat menyimpan profil");
+        }
+      } finally {
+        this.loading = false;
       }
-      alert("Gagal menyimpan profil:\n" + messages);
-    } else {
-      console.error("Error saveProfil:", error);
-      alert("Terjadi kesalahan saat menyimpan profil");
-    }
-  } finally {
-    this.loading = false;
-  }
-},
-
+    },
   },
 };
 </script>

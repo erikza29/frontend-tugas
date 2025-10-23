@@ -56,25 +56,30 @@ export default {
   },
   methods: {
     async getProfil() {
-      try {
-        const res = await api.get("/profil", {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
+  try {
+    const res = await api.get("/profil", {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    });
 
-        this.profil = res.data?.data || {
-          nama: "",
-          deskripsi: "",
-          gambar_url: null,
-          riwayat: [],
-        };
-      } catch (err) {
-        console.error("Error getProfil:", err);
-        this.message = err.response?.data?.message || "Terjadi kesalahan server";
-      }
-    },
-    goToEdit() {
-      this.$router.push({ name: "EditProfil" });
-    },
+    this.profil = res.data?.data || {
+      nama: "",
+      deskripsi: "",
+      gambar_url: null,
+      riwayat: [],
+    };
+
+    // ✅ Simpan foto ke localStorage
+    if (this.profil.gambar_url) {
+      localStorage.setItem("avatar_url", this.profil.gambar_url);
+      window.dispatchEvent(new Event("avatar-changed"));
+    }
+
+  } catch (err) {
+    console.error("Error getProfil:", err);
+    this.message = err.response?.data?.message || "Terjadi kesalahan server";
+  }
+},
+
   },
 };
 </script>

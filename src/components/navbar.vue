@@ -42,17 +42,17 @@ import { useRoute, useRouter } from "vue-router";
 const route = useRoute();
 const router = useRouter();
 
-// role & avatar
+// Data reactive
 const role = ref((localStorage.getItem("role") || "").toLowerCase().trim());
 const avatarUrl = ref(localStorage.getItem("avatar_url") || "https://i.pravatar.cc/150?img=3");
 
-// Navbar hanya hilang di halaman login/register/pilih-role
+// Navbar hanya tampil di halaman tertentu
 const showNavbar = computed(() => {
   const hiddenPages = ["/login", "/register", "/pilih_role"];
   return !hiddenPages.includes(route.path);
 });
 
-// Logout
+// Logout function
 const logout = () => {
   localStorage.clear();
   role.value = null;
@@ -60,7 +60,7 @@ const logout = () => {
   router.push("/login");
 };
 
-// sync role & avatar
+// Update data dari localStorage
 const updateRole = () => {
   role.value = (localStorage.getItem("role") || "").toLowerCase().trim();
 };
@@ -68,10 +68,10 @@ const updateAvatar = () => {
   avatarUrl.value = localStorage.getItem("avatar_url") || "https://i.pravatar.cc/150?img=3";
 };
 
+// Event listener untuk sinkronisasi real-time
 onMounted(() => {
   updateRole();
   updateAvatar();
-
   window.addEventListener("role-changed", updateRole);
   window.addEventListener("avatar-changed", updateAvatar);
   window.addEventListener("storage", () => {
