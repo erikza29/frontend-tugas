@@ -1,3 +1,59 @@
+<template>
+  <div class="login-wrapper">
+    <!-- BAGIAN KIRI -->
+    <div class="left-section">
+      <img
+        src="C:\PAK ANDI\frontend\vue_project\src\assets\gibran.png"
+        alt="login logo"
+        class="hero-image"
+      />
+    </div>
+
+    <!-- BAGIAN KANAN -->
+    <div class="right-section">
+      <div class="form-container">
+        <h1>Login ke Kerjayo</h1>
+        <p>Masuk untuk menemukan pekerjaan impianmu!</p>
+
+        <form @submit.prevent="handleLogin">
+          <div class="input-group">
+            <i class="fas fa-user"></i>
+            <input
+              type="email"
+              placeholder="Email"
+              v-model="email"
+              required
+              class="input-field"
+            />
+          </div>
+
+          <div class="input-group">
+            <i class="fas fa-lock"></i>
+            <input
+              type="password"
+              placeholder="Password"
+              v-model="password"
+              required
+              class="input-field"
+            />
+          </div>
+
+          <button type="submit" class="login-button">MASUK</button>
+        </form>
+
+        <div class="register-link">
+          <p>
+            Belum punya akun?
+            <router-link to="/register" class="link-register">
+              Daftar Sekarang
+            </router-link>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
@@ -18,19 +74,19 @@ async function handleLogin() {
 
     const token = res.data.data.token;
     const role = res.data.data.role;
-    const userId = res.data.data.user.id; // ✅ simpan user_id
+    const userId = res.data.data.user.id;
 
     if (!token) {
       alert("Token tidak ditemukan dari server!");
       return;
     }
 
-    // ✅ Simpan token, role, dan user_id
+    // ✅ Simpan token, role, dan user_id ke localStorage
     localStorage.setItem("token", token);
     localStorage.setItem("role", role);
     localStorage.setItem("user_id", userId);
 
-    // ✅ Ambil profil user agar avatar langsung update
+    // ✅ Ambil profil user agar avatar langsung muncul di navbar
     try {
       const profilRes = await api.get("/profil", {
         headers: { Authorization: `Bearer ${token}` },
@@ -42,14 +98,14 @@ async function handleLogin() {
 
       localStorage.setItem("avatar_url", avatar);
 
-      // ✅ Trigger update navbar
+      // ✅ Trigger event ke navbar (biar langsung update avatar & role)
       window.dispatchEvent(new Event("avatar-changed"));
       window.dispatchEvent(new Event("role-changed"));
     } catch (err) {
       console.warn("Gagal ambil profil:", err);
     }
 
-    // ✅ Arahkan sesuai role
+    // ✅ Arahkan user sesuai role
     if (role === "pekerja") {
       router.push("/lokerlist");
     } else if (role === "pemberi_kerja") {
@@ -57,7 +113,6 @@ async function handleLogin() {
     } else {
       router.push("/pilih_role");
     }
-
   } catch (err) {
     console.error("Login error:", err.response?.data || err);
     alert(err.response?.data?.message || "Login gagal");
@@ -65,128 +120,138 @@ async function handleLogin() {
 }
 </script>
 
-<template>
-  <div class="login-page">
-    <div class="login-box">
-      <div class="left-side">
-        <img
-          src="https://i.pinimg.com/474x/a6/33/40/a633405594365ef1d55122fff5e93264.jpg"
-          alt="login logo"
-        />
-        <div class="welcome-text">
-          <h2>Welcome</h2>
-          <p>
-            Don't have an account? Create your account, it takes less than a
-            minute.
-          </p>
-        </div>
-      </div>
-
-      <div class="right-side">
-        <h2>Login System</h2>
-
-        <form @submit.prevent="handleLogin">
-          <div class="input-group">
-            <i class="fas fa-user"></i>
-            <input type="text" placeholder="Email" v-model="email" required />
-          </div>
-
-          <div class="input-group">
-            <i class="fas fa-lock"></i>
-            <input
-              type="password"
-              placeholder="Password"
-              v-model="password"
-              required
-            />
-          </div>
-
-          <button type="submit" class="login-btn">LOGIN</button>
-        </form>
-
-        <div class="register-link">
-          <p>
-            Don't have an account? <a href="/register">Create one</a>
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <style scoped>
 @import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css");
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap");
 
-.login-page {
-  width: 100vw;
+.login-wrapper {
+  display: flex;
   height: 100vh;
-  background: linear-gradient(135deg, #007bff, #00c6ff, #00e6e6);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  font-family: "Poppins", sans-serif;
 }
-.login-box {
-  width: 100%;
-  max-width: 1000px;
+
+/* BAGIAN KIRI */
+.left-section {
+  flex: 1;
+  background-color: #0c1b36;
   display: flex;
-  border-radius: 20px;
-  background-color: white;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
 }
-.left-side {
+
+.hero-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* BAGIAN KANAN */
+.right-section {
   flex: 1;
-  background: linear-gradient(to bottom right, #e6f4ff, #cce9ff);
-  padding: 60px;
+  background: #ffffff;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
 }
-.left-side img {
-  max-width: 180px;
-  margin-bottom: 20px;
-  border-radius: 12px;
+
+.form-container {
+  width: 100%;
+  max-width: 350px;
+  text-align: center;
 }
-.right-side {
-  flex: 1;
-  padding: 40px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+
+.form-container h1 {
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 5px;
+  color: #000;
 }
+
+.form-container p {
+  font-size: 13px;
+  color: #333;
+  margin-bottom: 25px;
+}
+
+/* INPUT */
 .input-group {
   position: relative;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
+
 .input-group i {
   position: absolute;
   top: 50%;
-  left: 12px;
+  left: 15px;
   transform: translateY(-50%);
   color: #888;
 }
-.input-group input {
-  width: 80%;
-  padding: 12px 40px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
+
+.input-field {
+  width: 100%;
+  padding: 10px 15px 10px 40px;
+  border: 1px solid #aaa;
+  border-radius: 25px;
   outline: none;
   font-size: 14px;
+  transition: all 0.2s ease;
 }
-.login-btn {
-  background: linear-gradient(to right, #007bff, #00c6ff);
-  color: white;
-  border: none;
-  padding: 12px;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
+
+.input-field:focus {
+  border-color: #00bfff;
+  box-shadow: 0 0 0 2px rgba(0, 191, 255, 0.2);
+}
+
+/* BUTTON */
+.login-button {
   width: 100%;
+  background: linear-gradient(to bottom, #67e1ff, #00bfff);
+  border: none;
+  color: white;
+  padding: 10px;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
 }
+
+.login-button:hover {
+  opacity: 0.9;
+  transform: scale(1.02);
+}
+
+/* LINK REGISTER */
 .register-link {
-  margin-top: 25px;
-  text-align: center;
-  font-size: 14px;
+  margin-top: 20px;
+  font-size: 13px;
+  color: #444;
+}
+
+.link-register {
+  color: #00bfff;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.link-register:hover {
+  text-decoration: underline;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .login-wrapper {
+    flex-direction: column;
+  }
+
+  .left-section {
+    height: 250px;
+  }
+
+  .hero-image {
+    height: 100%;
+    object-fit: cover;
+  }
 }
 </style>

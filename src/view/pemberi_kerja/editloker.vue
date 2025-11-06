@@ -66,40 +66,42 @@ export default {
     };
   },
   async mounted() {
+  try {
+    const id = this.$route.params.id;
+    const res = await api.get(`/loker/${id}`); // ✅ ubah jadi singular
+    if (res.data.success) {
+      this.form = res.data.data;
+      this.loaded = true;
+    } else {
+      this.error = res.data.message || "Gagal memuat data";
+    }
+  } catch (err) {
+    this.error = err.response?.data?.message || "Terjadi kesalahan server";
+  }
+},
+
+methods: {
+  async updateLoker() {
+    this.loading = true;
+    this.error = "";
+
     try {
       const id = this.$route.params.id;
-      const res = await api.get(`/lokers/${id}`);
+      const res = await api.put(`/loker/${id}`, this.form); // ✅ ubah juga di sini
       if (res.data.success) {
-        this.form = res.data.data;
-        this.loaded = true;
+        alert("Lowongan berhasil diperbarui");
+        this.$router.push("/daftarloker");
       } else {
-        this.error = res.data.message || "Gagal memuat data";
+        this.error = res.data.message || "Gagal memperbarui lowongan";
       }
     } catch (err) {
       this.error = err.response?.data?.message || "Terjadi kesalahan server";
+    } finally {
+      this.loading = false;
     }
   },
-  methods: {
-    async updateLoker() {
-      this.loading = true;
-      this.error = "";
+},
 
-      try {
-        const id = this.$route.params.id;
-        const res = await api.put(`/lokers/${id}`, this.form);
-        if (res.data.success) {
-          alert("Lowongan berhasil diperbarui");
-          this.$router.push("/daftarloker");
-        } else {
-          this.error = res.data.message || "Gagal memperbarui lowongan";
-        }
-      } catch (err) {
-        this.error = err.response?.data?.message || "Terjadi kesalahan server";
-      } finally {
-        this.loading = false;
-      }
-    },
-  },
 };
 </script>
 

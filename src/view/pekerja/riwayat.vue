@@ -1,6 +1,6 @@
 <template>
   <div class="riwayat-container">
-    <!-- Title & controls -->
+    <!-- ===== Header & Controls ===== -->
     <div class="controls">
       <h2 class="title">Riwayat Pekerjaan</h2>
 
@@ -14,14 +14,11 @@
           <option value="selesai">Selesai</option>
           <option value="dibatalkan">Dibatalkan</option>
         </select>
-
-        <div class="summary">
-          <span>{{ total }} item</span>
-        </div>
+        <div class="summary"><span>{{ total }} item</span></div>
       </div>
     </div>
 
-    <!-- Loading skeleton -->
+    <!-- ===== Loading Skeleton ===== -->
     <div v-if="loading" class="skeleton-list" aria-busy="true">
       <div class="skeleton" v-for="n in 3" :key="n">
         <div class="skeleton-left"></div>
@@ -29,11 +26,9 @@
       </div>
     </div>
 
-    <!-- Content -->
+    <!-- ===== Content ===== -->
     <div v-else>
-      <div v-if="riwayat.length === 0" class="no-data">
-        Belum ada riwayat.
-      </div>
+      <div v-if="riwayat.length === 0" class="no-data">Belum ada riwayat.</div>
 
       <div v-else class="list">
         <div
@@ -41,7 +36,6 @@
           :key="item._uid || item.id"
           class="riwayat-card"
           role="article"
-          :aria-label="`Riwayat ${getTitle(item) || '–'}`"
         >
           <div class="info">
             <p class="judul">{{ getTitle(item) }}</p>
@@ -50,12 +44,9 @@
           </div>
 
           <div class="right-area">
-            <div :class="['status', statusClass(item.status)]">
-              {{ humanStatus(item.status) }}
-            </div>
+            <div :class="['status', statusClass(item.status)]">{{ humanStatus(item.status) }}</div>
 
             <div class="actions">
-              <!-- Tampilkan tombol hanya untuk entri pekerjaan (type === 'pekerjaan') dan status 'aktif' -->
               <button
                 v-if="item.type === 'pekerjaan' && item.status === 'aktif'"
                 class="btn-complete"
@@ -64,7 +55,6 @@
                 Tandai Selesai
               </button>
 
-              <!-- Jika sudah selesai, tampilkan tanggal selesai -->
               <p v-if="item.status === 'selesai' && item.tanggal_selesai" class="finished-at">
                 Selesai: {{ formatTanggal(item.tanggal_selesai) }}
               </p>
@@ -73,7 +63,7 @@
         </div>
       </div>
 
-      <!-- Pagination sederhana -->
+      <!-- ===== Pagination ===== -->
       <div class="pagination" v-if="pageCount > 1">
         <button :disabled="page === 1" @click="page--">Prev</button>
         <span>Halaman {{ page }} / {{ pageCount }}</span>
@@ -81,11 +71,14 @@
       </div>
     </div>
 
-    <!-- Konfirmasi modal -->
+    <!-- ===== Modal Konfirmasi ===== -->
     <div v-if="confirmModal.show" class="modal" role="dialog" aria-modal="true">
       <div class="modal-content">
         <h3>Konfirmasi</h3>
-        <p>Anda yakin ingin menandai pekerjaan "<strong>{{ getTitle(confirmModal.item) }}</strong>" sebagai selesai?</p>
+        <p>
+          Anda yakin ingin menandai pekerjaan
+          "<strong>{{ getTitle(confirmModal.item) }}</strong>" sebagai selesai?
+        </p>
         <div class="modal-actions">
           <button @click="confirmModal.show = false">Batal</button>
           <button class="danger" @click="completeWork(confirmModal.item)">Ya, selesai</button>
@@ -93,13 +86,13 @@
       </div>
     </div>
 
-    <!-- Toast sederhana -->
+    <!-- ===== Toast ===== -->
     <div v-if="toast.show" :class="['toast', toast.type]">{{ toast.message }}</div>
   </div>
 </template>
 
 <script>
-import api from "@/API/api"; // sesuaikan path api kamu
+import api from "@/API/api";
 
 export default {
   name: "Riwayat",
@@ -116,9 +109,8 @@ export default {
   },
   computed: {
     filtered() {
-      // filter berdasarkan status jika ada filter dipilih
       if (!this.filterStatus) return this.riwayat;
-      return this.riwayat.filter(r => r.status === this.filterStatus);
+      return this.riwayat.filter((r) => r.status === this.filterStatus);
     },
     total() {
       return this.filtered.length;
@@ -129,177 +121,118 @@ export default {
     paginated() {
       const start = (this.page - 1) * this.perPage;
       return this.filtered.slice(start, start + this.perPage);
-    }
+    },
   },
   methods: {
-    // Ambil data riwayat gabungan (lamaran + pekerjaan) dan normalisasi status
     async getRiwayat() {
       this.loading = true;
       try {
         const res = await api.get("/pekerjaan/riwayat-gabungan", {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
 
         let raw = [];
-        if (res.data?.success && Array.isArray(res.data.data)) {
-          raw = res.data.data;
-        } else if (Array.isArray(res.data)) {
-          raw = res.data;
-        } else if (Array.isArray(res.data?.data)) {
-          raw = res.data.data;
-        }
+        if (res.data?.success && Array.isArray(res.data.data)) raw = res.data.data;
+        else if (Array.isArray(res.data)) raw = res.data;
+        else if (Array.isArray(res.data?.data)) raw = res.data.data;
 
-        let gabungan = raw.map((it, idx) => {
-          // Normalisasi objek loker (bisa string atau object dari backend)
-          let lokerObj = null;
-          if (it.loker) {
-            if (typeof it.loker === "string") {
-              lokerObj = { judul: it.loker };
-            } else if (typeof it.loker === "object") {
-              lokerObj = {
-                judul:
-                  it.loker.judul ??
-                  it.loker.name ??
-                  it.loker.title ??
-                  (it.loker?.judul ? it.loker.judul : null)
-              };
-            }
-          } else if (it.loker_judul) {
-            lokerObj = { judul: it.loker_judul };
-          } else if (it.judul) {
-            lokerObj = { judul: it.judul };
-          }
+        const gabungan = raw.map((it, idx) => {
+          const lokerObj =
+            typeof it.loker === "object"
+              ? { judul: it.loker.judul || it.loker.name || it.loker.title }
+              : { judul: it.loker || it.judul || it.loker_judul };
 
-          // Normalisasi status: tangani variasi (rejected, reject, tolak, dll.)
-          const rawStatus = (it.status ?? "").toString().toLowerCase().trim();
           const normalizedStatus = (() => {
-            if (rawStatus === "diterima" || rawStatus === "accepted") return "diterima";
-            if (["rejected", "reject", "tolak", "ditolak"].includes(rawStatus)) return "ditolak";
-            if (["aktif", "active"].includes(rawStatus)) return "aktif";
-            if (rawStatus === "pending") return "pending";
-            if (rawStatus === "selesai" || rawStatus === "finished") return "selesai";
-            if (["dibatalkan", "cancelled", "canceled"].includes(rawStatus)) return "dibatalkan";
-            // fallback ke raw status (aman)
-            return rawStatus || null;
+            const s = (it.status || "").toLowerCase();
+            if (["diterima", "accepted"].includes(s)) return "diterima";
+            if (["rejected", "reject", "tolak", "ditolak"].includes(s)) return "ditolak";
+            if (["aktif", "active"].includes(s)) return "aktif";
+            if (s === "pending") return "pending";
+            if (["selesai", "finished"].includes(s)) return "selesai";
+            if (["dibatalkan", "cancelled", "canceled"].includes(s)) return "dibatalkan";
+            return s;
           })();
 
-          // pastikan type: backend biasanya sudah mengisi 'type' (lamaran/pekerjaan)
-          const type = it.type ?? it.tipe ?? null;
-
           return {
-            id: it.id ?? null,
+            id: it.id,
             _uid: `riwayat-${Date.now()}-${idx}`,
-            type: type,
+            type: it.type ?? it.tipe ?? null,
             status: normalizedStatus,
-            tanggal: it.tanggal ?? it.tanggal_mulai ?? it.created_at ?? null,
+            tanggal: it.tanggal ?? it.tanggal_mulai ?? it.created_at,
             tanggal_selesai: it.tanggal_selesai ?? null,
             loker: lokerObj,
-            raw: it
+            raw: it,
           };
         });
 
-        // hilangkan duplikat berdasarkan id (tetap jaga urutan)
-        const uniqueMap = new Map();
-        gabungan.forEach(item => {
-          // bila id null/undefined, buat key unik dari _uid
-          const key = item.id ?? item._uid;
-          if (!uniqueMap.has(key)) {
-            uniqueMap.set(key, item);
-          }
-        });
-
-        // Simpan semua tipe (lamaran + pekerjaan) — penting supaya 'ditolak' dari lamaran tampil
-        this.riwayat = Array.from(uniqueMap.values());
-
+        const unique = Array.from(new Map(gabungan.map((i) => [i.id ?? i._uid, i])).values());
+        this.riwayat = unique;
       } catch (err) {
-        console.error("Gagal memuat riwayat:", err);
-        this.showToast("Gagal memuat riwayat. Cek jaringan.", "error");
-        this.riwayat = [];
+        console.error(err);
+        this.showToast("Gagal memuat riwayat.", "error");
       } finally {
         this.loading = false;
       }
     },
-
     getTitle(item) {
-      if (!item) return "Judul tidak tersedia";
-      if (item.loker?.judul) return item.loker.judul;
-      if (item.raw?.loker?.judul) return item.raw.loker.judul;
-      if (typeof item.raw?.loker === "string") return item.raw.loker;
-      if (item.raw?.judul) return item.raw.judul;
-      return "Judul tidak tersedia";
+      return (
+        item?.loker?.judul ||
+        item?.raw?.loker?.judul ||
+        item?.raw?.judul ||
+        item?.raw?.loker ||
+        "Judul tidak tersedia"
+      );
     },
-
     formatTanggal(date) {
       if (!date) return "-";
       const d = new Date(date);
-      if (isNaN(d)) return date;
       return d.toLocaleDateString("id-ID", { day: "2-digit", month: "2-digit", year: "numeric" });
     },
-
-    humanStatus(status) {
-      const map = {
+    humanStatus(s) {
+      const m = {
         pending: "Pending",
         diterima: "Diterima",
         ditolak: "Ditolak",
         aktif: "Aktif",
         selesai: "Selesai",
-        dibatalkan: "Dibatalkan"
+        dibatalkan: "Dibatalkan",
       };
-      return map[status] ?? (status ? status.toString() : "-");
+      return m[s] || s;
     },
-
-    statusClass(status) {
-      if (status === "pending") return "pending";
-      if (status === "diterima" || status === "aktif") return "aktif";
-      if (status === "ditolak") return "ditolak";
-      if (status === "selesai") return "selesai";
-      if (status === "dibatalkan") return "dibatalkan";
-      return "other";
+    statusClass(s) {
+      return s;
     },
-
     onFilterChange() {
       this.page = 1;
     },
-
-    confirmComplete(item) {
-      this.confirmModal.item = item;
-      this.confirmModal.show = true;
+    confirmComplete(i) {
+      this.confirmModal = { show: true, item: i };
     },
-
-    async completeWork(item) {
-      if (!item || !item.id) return;
+    async completeWork(i) {
+      if (!i?.id) return;
       this.confirmModal.show = false;
-
-      const id = item.id;
+      const prev = i.status;
+      i.status = "selesai";
       try {
-        const previousStatus = item.status;
-        item.status = "selesai";
-        item.tanggal_selesai = new Date().toISOString();
-
-        const res = await api.put(`/pekerjaan/${id}/status/selesai`, {}, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        const res = await api.put(`/pekerjaan/${i.id}/status/selesai`, {}, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
-
         if (res.data?.success) {
-          this.showToast("Pekerjaan berhasil ditandai selesai.", "success");
+          this.showToast("Pekerjaan berhasil diselesaikan.", "success");
           this.getRiwayat();
         } else {
-          item.status = previousStatus;
-          delete item.tanggal_selesai;
+          i.status = prev;
           this.showToast("Gagal menandai selesai.", "error");
         }
-      } catch (err) {
-        console.error("Error complete:", err);
-        item.status = previousStatus || item.status;
-        delete item.tanggal_selesai;
+      } catch {
+        i.status = prev;
         this.showToast("Gagal terhubung ke server.", "error");
       }
     },
-
-    showToast(message, type = "info", ms = 3500) {
-      this.toast = { show: true, message, type };
+    showToast(m, t = "info", ms = 3000) {
+      this.toast = { show: true, message: m, type: t };
       setTimeout(() => (this.toast.show = false), ms);
-    }
+    },
   },
   mounted() {
     this.getRiwayat();
@@ -308,58 +241,203 @@ export default {
 </script>
 
 <style scoped>
-.riwayat-container { max-width: 920px; margin: 0 auto; padding: 16px; font-family: Inter, system-ui, sans-serif; }
+.riwayat-container {
+  max-width: 980px;
+  margin: 40px auto;
+  padding: 28px;
+  background: #f9fafb;
+  border-radius: 20px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
+  font-family: "Poppins", sans-serif;
+}
 
-.controls { display:flex; justify-content:space-between; align-items:center; margin: 12px 0; }
-.title { margin:0; font-size:20px; color:#222; }
-.controls-right { display:flex; align-items:center; gap:12px; }
-select { padding:6px 8px; border-radius:6px; border:1px solid #ccc; }
-
-/* Skeleton */
-.skeleton-list { display:flex; flex-direction:column; gap:12px; }
-.skeleton { display:flex; justify-content:space-between; background:#f6f6f6; border-radius:10px; height:80px; padding:12px; }
-.skeleton-left { width:70%; background:linear-gradient(90deg,#eee,#f5f5f5); border-radius:6px; }
-.skeleton-right { width:25%; background:linear-gradient(90deg,#eee,#f5f5f5); border-radius:6px; }
+/* Header */
+.controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+}
+select {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  background: white;
+  font-size: 14px;
+}
+select:focus {
+  outline: none;
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+}
+.summary {
+  font-size: 14px;
+  color: #6b7280;
+}
 
 /* Cards */
-.list { display:flex; flex-direction:column; gap:12px; margin-top:8px; }
-.riwayat-card { display:flex; justify-content:space-between; align-items:center; padding:14px; border-radius:10px; background:#fafafa; border:1px solid #eee; }
-.info { max-width:70%; }
-.judul { font-weight:700; margin:0 0 6px; }
-.tanggal { margin:0; color:#777; font-size:13px; }
-.tipe { font-size:12px; color:#888; }
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.riwayat-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  border-radius: 14px;
+  padding: 18px 20px;
+  border: 1px solid #e5e7eb;
+  transition: all 0.25s ease;
+}
+.riwayat-card:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+.info .judul {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+.info .tanggal {
+  font-size: 13px;
+  color: #6b7280;
+}
+.info .tipe {
+  font-size: 12px;
+  color: #9ca3af;
+}
 
-/* Right area */
-.right-area { display:flex; flex-direction:column; align-items:flex-end; gap:8px; }
-
-/* Status */
-.status { padding:8px 14px; border-radius:8px; color:#fff; font-weight:600; text-transform:capitalize; }
-.status.aktif { background:#3498db; }
-.status.selesai { background:#2ecc71; }
-.status.ditolak { background:#e74c3c; }
-.status.pending { background:#f39c12; }
-.status.dibatalkan { background:#95a5a6; }
-.status.other { background:#95a5a6; }
+/* Status Badge */
+.status {
+  padding: 6px 14px;
+  border-radius: 30px;
+  font-weight: 600;
+  color: white;
+  font-size: 13px;
+  text-align: center;
+}
+.status.pending { background: #fbbf24; }
+.status.diterima { background: #10b981; }
+.status.aktif { background: #3b82f6; }
+.status.ditolak { background: #ef4444; }
+.status.selesai { background: #14b8a6; }
+.status.dibatalkan { background: #9ca3af; }
 
 /* Actions */
-.actions { display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
-.btn-complete { background:#2ecc71; color:#fff; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; }
-.btn-complete:hover { filter:brightness(.95); }
-.finished-at { font-size:12px; color:#555; margin:0; }
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+.btn-complete {
+  background: linear-gradient(to right, #10b981, #059669);
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  transition: 0.25s;
+}
+.btn-complete:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+}
 
 /* Pagination */
-.pagination { display:flex; justify-content:center; gap:12px; margin-top:16px; align-items:center; }
-.pagination button { padding:6px 10px; border-radius:6px; border:1px solid #ddd; background:#fff; cursor:pointer; }
+.pagination {
+  margin-top: 26px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+.pagination button {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: white;
+  cursor: pointer;
+}
+.pagination button:hover {
+  background: #0ea5e9;
+  color: white;
+}
 
 /* Modal */
-.modal { position:fixed; inset:0; background:rgba(0,0,0,.45); display:flex; justify-content:center; align-items:center; }
-.modal-content { background:#fff; padding:18px; border-radius:12px; max-width:420px; width:90%; box-shadow:0 8px 24px rgba(0,0,0,0.12); }
-.modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:12px; }
-.modal-actions .danger { background:#e74c3c; color:#fff; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; }
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.modal-content {
+  background: #fff;
+  padding: 24px;
+  border-radius: 14px;
+  width: 90%;
+  max-width: 420px;
+  text-align: center;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+.modal-actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.modal-actions button {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+.modal-actions .danger {
+  background: #ef4444;
+  color: #fff;
+}
 
 /* Toast */
-.toast { position:fixed; right:20px; bottom:20px; padding:10px 14px; border-radius:8px; color:#fff; }
-.toast.info { background:#3498db; }
-.toast.success { background:#2ecc71; }
-.toast.error { background:#e74c3c; }
+.toast {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  color: #fff;
+}
+.toast.info { background: #3b82f6; }
+.toast.success { background: #10b981; }
+.toast.error { background: #ef4444; }
+
+@media (max-width: 700px) {
+  .riwayat-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .right-area {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+  }
+  .controls {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
 </style>

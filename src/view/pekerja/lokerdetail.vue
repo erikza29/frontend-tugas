@@ -1,36 +1,35 @@
-```vue
 <template>
   <div class="job-wrapper">
-    <!-- Header / Hero -->
-    <div class="job-hero">
-      <button class="btn-back" @click="$router.back()">⬅ Kembali</button>
-      <div class="hero-content">
-        <div class="company-logo">🛠️</div>
-        <div>
-          <h1 class="job-title">{{ loker?.judul }}</h1>
-          
-        </div>
+    <!-- Banner -->
+    <div class="banner-section">
+      <div class="banner">
+        <button class="btn-back" @click="$router.back()">⬅ Kembali</button>
+        <h2>{{ loker?.judul }}</h2>
       </div>
     </div>
 
-    <!-- Konten utama -->
-    <div class="job-container">
-      <!-- Deskripsi -->
-      <div class="job-left">
-        <h2>Deskripsi Pekerjaan</h2>
-        <p>{{ loker?.deskripsi }}</p>
+    <!-- Konten Utama -->
+    <div class="main-content">
+      <!-- Kolom Kiri -->
+      <div class="left-column">
+        <div class="description">
+          <h3>Deskripsi Pekerjaan</h3>
+          <div class="description-content">
+            <p>{{ loker?.deskripsi }}</p>
+          </div>
+        </div>
       </div>
 
-      <!-- Info ringkas -->
-      <div class="job-right">
-        <div class="info-card">
+      <!-- Kolom Kanan -->
+      <div class="right-column">
+        <div class="detail-card">
           <h3>Detail Pekerjaan</h3>
-          <ul>
-            <li><span>📍 Lokasi:</span> {{ loker?.lokasi }}</li>
-            <li><span>💰 Gaji:</span> Rp {{ formatRupiah(loker?.gaji) }}</li>
-            <li><span>⏳ Deadline:</span> {{ loker?.deadline }}</li>
-          </ul>
-          <button class="btn-apply" @click="lamarLoker">🚀 Lamar Sekarang</button>
+          <div class="detail-info">
+            <p><span>📍 Lokasi :</span> {{ loker?.lokasi }}</p>
+            <p><span>💰 Gaji :</span> Rp {{ formatRupiah(loker?.gaji) }}</p>
+            <p><span>⏳ Deadline :</span> {{ loker?.deadline }}</p>
+          </div>
+          <button class="apply-button" @click="lamarLoker">🚀 Lamar Sekarang</button>
         </div>
       </div>
     </div>
@@ -43,9 +42,7 @@ import api from "@/API/api";
 export default {
   name: "LokerDetail",
   data() {
-    return {
-      loker: null,
-    };
+    return { loker: null };
   },
   methods: {
     async getDetailLoker() {
@@ -57,28 +54,18 @@ export default {
         alert("Gagal memuat detail loker");
       }
     },
-
     async lamarLoker() {
       try {
-        const res = await api.post(
+        await api.post(
           "/lamar",
           { loker_id: this.$route.params.id },
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
+          { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
         );
         alert("Lamaran berhasil dikirim!");
       } catch (err) {
-        if (err.response) {
-          alert(`Gagal melamar: ${err.response.data.message || "Terjadi kesalahan"}`);
-        } else {
-          alert("Gagal melamar, coba lagi.");
-        }
+        alert(`Gagal melamar: ${err.response?.data?.message || "Terjadi kesalahan"}`);
       }
     },
-
     formatRupiah(angka) {
       if (!angka) return 0;
       return new Intl.NumberFormat("id-ID").format(angka);
@@ -91,126 +78,188 @@ export default {
 </script>
 
 <style scoped>
-.job-wrapper {
-  font-family: "Segoe UI", sans-serif;
-  color: #2c3e50;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-/* Hero */
-.job-hero {
-  background: linear-gradient(135deg, #3498db, #2ecc71);
+.job-wrapper {
+  font-family: "Poppins", sans-serif;
+  background: #f9fdfe;
+  min-height: 100vh;
+  color: #2c3e50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* === Banner === */
+.banner-section {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.banner {
+  background: linear-gradient(to bottom, #a0e6f6, #f9ffff);
+  border-radius: 20px;
+  padding: 35px 60px;
   color: white;
-  padding: 30px;
-  border-radius: 0 0 30px 30px;
-  margin-bottom: 30px;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+  text-align: center;
+  position: relative;
+  width: 80%;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+  color: black;
 }
 
 .btn-back {
-  background: rgba(255, 255, 255, 0.2);
+  position: absolute;
+  left: 25px;
+  top: 25px;
+  background: #4789B2;
+  color: rgb(255, 255, 255);
   border: none;
-  color: white;
   padding: 6px 12px;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;
-  margin-bottom: 15px;
+  font-weight: 500;
+  transition: 0.3s;
 }
 
-.hero-content {
-  display: flex;
-  align-items: center;
-  gap: 15px;
+.btn-back:hover {
+  background: rgba(255, 255, 255, 0.4);
 }
 
-.company-logo {
-  background: white;
-  color: #3498db;
-  font-size: 30px;
-  border-radius: 12px;
-  padding: 12px;
+.banner h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  word-break: break-word;
 }
 
-.job-title {
-  font-size: 28px;
-  font-weight: 700;
-  margin: 0;
-}
-
-.job-subtitle {
-  font-size: 16px;
-  opacity: 0.9;
-  margin-top: 5px;
-}
-
-/* Container */
-.job-container {
+/* === Layout Utama === */
+.main-content {
+  width: 80%;
+  margin-top: 2rem;
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 25px;
-  max-width: 1100px;
-  margin: auto;
-  padding: 0 20px;
+  gap: 2rem;
+  align-items: start;
 }
 
-.job-left h2 {
-  margin-bottom: 15px;
-  font-size: 22px;
-  color: #34495e;
+/* === Deskripsi === */
+.description {
+  background: white;
+  padding: 2rem;
+  border-radius: 15px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+  height: 400px;
+  display: flex;
+  flex-direction: column;
 }
 
-.job-left p {
-  line-height: 1.6;
-  color: #555;
-  text-align: justify;
-}
-
-/* Info ringkas */
-.info-card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-}
-
-.info-card h3 {
-  margin-bottom: 15px;
-  font-size: 20px;
-  color: #2c3e50;
-}
-
-.info-card ul {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 20px 0;
-}
-
-.info-card li {
-  margin: 10px 0;
-  font-size: 15px;
-  color: #444;
-}
-
-.info-card span {
+.description h3 {
+  font-size: 1.5rem;
   font-weight: 600;
-  margin-right: 6px;
+  color: #1a4d5c;
+  margin-bottom: 1rem;
 }
 
-.btn-apply {
+.description-content {
+  flex: 1;
+  overflow-y: auto;
+  color: #2d5a68;
+  line-height: 1.7;
+  text-align: justify;
+  padding-right: 8px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+/* scrollbar halus */
+.description-content::-webkit-scrollbar {
+  width: 6px;
+}
+.description-content::-webkit-scrollbar-thumb {
+  background: #86c5cf;
+  border-radius: 3px;
+}
+
+/* === Detail Card === */
+.detail-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 15px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.detail-card h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #1a4d5c;
+  margin-bottom: 1rem;
+}
+
+.detail-info {
+  text-align: left;
+  margin-bottom: 1.5rem;
+}
+
+.detail-info p {
+  margin-bottom: 0.8rem;
+  color: #2d5a68;
+}
+
+.detail-info span {
+  font-weight: 600;
+  color: #164c5b;
+}
+
+/* === Tombol Lamar === */
+.apply-button {
   width: 100%;
-  background: linear-gradient(135deg, #2ecc71, #27ae60);
-  border: none;
+  background: linear-gradient(to right, #4789b2, #60d2dc);
   color: white;
-  font-size: 16px;
-  padding: 12px;
+  font-size: 1.125rem;
+  font-weight: 500;
+  padding: 1rem;
+  border: none;
   border-radius: 10px;
   cursor: pointer;
   transition: 0.3s;
 }
 
-.btn-apply:hover {
-  background: linear-gradient(135deg, #27ae60, #1e8449);
-  transform: scale(1.03);
+
+.apply-button:hover {
+  opacity: 0.9;
+  transform: scale(1.02);
+}
+
+/* === Responsif === */
+@media (max-width: 1024px) {
+  .main-content {
+    grid-template-columns: 1fr;
+  }
+  .description {
+    height: auto;
+    max-height: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .banner {
+    width: 90%;
+    padding: 25px;
+  }
+  .banner h2 {
+    font-size: 1.3rem;
+  }
+  .main-content {
+    width: 90%;
+  }
 }
 </style>
-```

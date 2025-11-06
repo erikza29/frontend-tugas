@@ -10,6 +10,7 @@
         <div v-else class="profil-default">No Photo</div>
       </div>
       <div class="profil-info">
+      
         <h1>{{ profil.nama }}</h1>
         <div class="rating-wrapper">
           <div class="stars">

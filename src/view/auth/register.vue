@@ -1,14 +1,64 @@
+<template>
+  <div class="register-wrapper">
+    <!-- KIRI -->
+    <div class="left-section">
+      <img
+        src="C:\PAK ANDI\frontend\vue_project\src\assets\gibran.png"
+        alt="Poster kerja"
+        class="hero-image"
+      />
+    </div>
+
+    <!-- KANAN -->
+    <div class="right-section">
+      <div class="form-container">
+        <h1>Selamat Datang</h1>
+        <p>Nganggur? Cari kerja di Kerjayo aja!</p>
+
+        <form @submit.prevent="handleRegister">
+          <input
+            type="text"
+            v-model="name"
+            placeholder="Nama Lengkap"
+            required
+            class="input-field"
+          />
+          <input
+            type="email"
+            v-model="email"
+            placeholder="Email"
+            required
+            class="input-field"
+          />
+          <input
+            type="password"
+            v-model="password"
+            placeholder="Password"
+            required
+            class="input-field"
+          />
+
+          <button type="submit" class="register-button">Daftar</button>
+        </form>
+
+        <p class="login-text">
+          Belum punya akun?
+          <router-link to="/login" class="link-login">Masuk</router-link>
+        </p>
+      </div>
+    </div>
+  </div>
+</template>
+
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import api from "@/API/api"; // axios instance
+import api from "@/API/api";
 
 const router = useRouter();
-
 const name = ref("");
 const email = ref("");
 const password = ref("");
-const role = ref("");
 
 async function handleRegister() {
   try {
@@ -16,9 +66,8 @@ async function handleRegister() {
       name: name.value,
       email: email.value,
       password: password.value,
-      role: role.value,
+      role: "pekerja",
     });
-
     alert("Registrasi berhasil! Silakan login.");
     router.push("/login");
   } catch (err) {
@@ -28,192 +77,121 @@ async function handleRegister() {
 }
 </script>
 
-<template>
-  <div class="login-page">
-    <div class="login-box">
-      <!-- Kiri -->
-      <div class="left-side">
-        <img
-          src="https://i.pinimg.com/474x/a6/33/40/a633405594365ef1d55122fff5e93264.jpg"
-          alt="register logo"
-        />
-        <div class="welcome-text">
-          <h2>Welcome</h2>
-          <p>Create your account, it takes less than a minute.</p>
-        </div>
-      </div>
-
-      <!-- Kanan -->
-      <div class="right-side">
-        <h2>Welcome to Register</h2>
-        <form @submit.prevent="handleRegister">
-          <div class="input-group">
-            <i class="fas fa-user"></i>
-            <input type="text" placeholder="Nama Lengkap" v-model="name" required />
-          </div>
-
-          <div class="input-group">
-            <i class="fas fa-envelope"></i>
-            <input type="email" placeholder="Email" v-model="email" required />
-          </div>
-
-          <div class="input-group">
-            <i class="fas fa-lock"></i>
-            <input type="password" placeholder="Password" v-model="password" required />
-          </div>
-
-
-          <button type="submit" class="login-btn">REGISTER</button>
-        </form>
-
-        <div class="register-link">
-          <p>Udah punya akun? <router-link to="/login">Login</router-link></p>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <style scoped>
-@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css");
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap");
 
-html,
-body {
-  margin: 0;
-  padding: 0;
+.register-wrapper {
+  display: flex;
+  height: 100vh;
+  font-family: "Poppins", sans-serif;
+}
+
+/* BAGIAN KIRI */
+.left-section {
+  flex: 1;
+  background-color: #0c1b36;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.hero-image {
   width: 100%;
   height: 100%;
-  overflow-x: hidden;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  object-fit: cover;
+  object-position: center;
 }
 
-.login-page {
-  width: 100vw;
-  height: 100vh;
-  background: linear-gradient(to right, #7b2ff7, #f107a3);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
-}
-
-.login-box {
-  width: 100%;
-  max-width: 1000px;
-  margin: 0 auto;
-  display: flex;
-  border-radius: 20px;
-  background-color: white;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-  overflow: hidden;
-}
-
-.left-side {
+/* BAGIAN KANAN */
+.right-section {
   flex: 1;
-  background: linear-gradient(to bottom right, #d6b2ff, #f5d0ff);
-  padding: 60px;
+  background: #ffffff;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
 }
 
-.left-side img {
-  max-width: 180px;
-  margin-bottom: 20px;
-  border-radius: 12px;
-}
-
-.welcome-text h2 {
-  margin: 0;
-  font-size: 24px;
-  color: #4b0082;
-}
-
-.welcome-text p {
-  color: #5a5a5a;
-  font-size: 14px;
+.form-container {
+  width: 100%;
+  max-width: 350px;
   text-align: center;
-  margin-top: 10px;
 }
 
-.right-side {
-  flex: 1;
-  padding: 40px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+.form-container h1 {
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 5px;
+  color: #000;
 }
 
-.right-side h2 {
-  margin-bottom: 20px;
-  color: #4b0082;
-  font-weight: bold;
+.form-container p {
+  font-size: 13px;
+  color: #333;
+  margin-bottom: 25px;
 }
 
-.input-group {
-  position: relative;
-  margin-bottom: 20px;
-}
-
-.input-group i {
-  position: absolute;
-  top: 50%;
-  left: 12px;
-  transform: translateY(-50%);
-  color: #aaa;
-}
-
-.input-group input {
+.input-field {
   width: 100%;
-  padding: 12px 40px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
+  padding: 10px 15px;
+  border: 1px solid #aaa;
+  border-radius: 25px;
+  margin-bottom: 15px;
   outline: none;
   font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.input-field:focus {
+  border-color: #00bfff;
+  box-shadow: 0 0 0 2px rgba(0, 191, 255, 0.2);
+}
+
+.register-button {
+  width: 100%;
+  background: linear-gradient(to bottom, #67e1ff, #00bfff);
+  border: none;
+  color: white;
+  padding: 10px;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
   transition: 0.3s;
 }
 
-.input-group input:focus {
-  border-color: #9b4dff;
-  box-shadow: 0 0 6px rgba(155, 77, 255, 0.5);
+.register-button:hover {
+  opacity: 0.9;
 }
 
-.login-btn {
-  background: linear-gradient(to right, #9b4dff, #6a00f4);
-  color: white;
-  border: none;
-  padding: 12px;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-  width: 100%;
-  transition: background 0.3s;
+.login-text {
+  margin-top: 20px;
+  font-size: 13px;
+  color: #444;
 }
 
-.login-btn:hover {
-  background: linear-gradient(to right, #7a26d1, #5200aa);
-}
-
-.register-link {
-  margin-top: 25px;
-  text-align: center;
-  font-size: 14px;
-}
-
-.register-link p {
-  margin-top: 25px;
-  font-size: 14px;
-  color: rgb(28, 27, 27);
-}
-
-.register-link a {
-  color: #9b4dff;
+.link-login {
+  color: #00bfff;
   text-decoration: none;
   font-weight: 500;
 }
 
-.register-link a:hover {
+.link-login:hover {
   text-decoration: underline;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .register-wrapper {
+    flex-direction: column;
+  }
+
+  .left-section {
+    height: 250px;
+  }
+
+  .hero-image {
+    height: 100%;
+    object-fit: cover;
+  }
 }
 </style>

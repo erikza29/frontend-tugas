@@ -5,31 +5,31 @@
       <div class="app-name">JobFinder</div>
     </div>
 
-    <div class="right">
+    <!-- Hamburger for Mobile -->
+    <div class="menu-toggle" @click="isMenuOpen = !isMenuOpen">
+      <span></span><span></span><span></span>
+    </div>
+
+    <div :class="['right', { open: isMenuOpen }]">
       <ul class="nav-links">
-        <!-- Kalau role pemberi kerja -->
         <template v-if="role === 'pemberi_kerja'">
-          <li><router-link to="/daftarloker">Beranda</router-link></li>
+          <li><router-link to="/daftarloker" @click="isMenuOpen = false">Beranda</router-link></li>
         </template>
 
-        <!-- Kalau role pekerja -->
         <template v-else-if="role === 'pekerja'">
-          <li><router-link to="/lokerlist">Beranda</router-link></li>
-          <li><router-link to="/riwayat">Riwayat</router-link></li>
+          <li><router-link to="/lokerlist" @click="isMenuOpen = false">Beranda</router-link></li>
+          <li><router-link to="/riwayat" @click="isMenuOpen = false">Riwayat</router-link></li>
         </template>
       </ul>
 
-      <!-- Switch Role -->
-      <router-link to="/pilih_role" class="switch-role">
+      <router-link to="/pilih_role" class="switch-role" @click="isMenuOpen = false">
         Ganti Role
       </router-link>
 
-      <!-- Avatar/Profile -->
-      <router-link to="/profil" class="profile">
+      <router-link to="/profil" class="profile" @click="isMenuOpen = false">
         <img :src="avatarUrl" alt="Avatar" />
       </router-link>
 
-      <!-- Logout -->
       <button class="logout-btn" @click="logout">Logout</button>
     </div>
   </nav>
@@ -45,13 +45,13 @@ const router = useRouter();
 
 const role = ref((localStorage.getItem("role") || "").toLowerCase().trim());
 const avatarUrl = ref(localStorage.getItem("avatar_url") || "https://i.pravatar.cc/150?img=3");
+const isMenuOpen = ref(false);
 
 const showNavbar = computed(() => {
   const hiddenPages = ["/login", "/register", "/pilih_role"];
   return !hiddenPages.includes(route.path);
 });
 
-// Ambil data profil dari backend
 const fetchProfil = async () => {
   try {
     const res = await api.get("/profil");
@@ -66,7 +66,6 @@ const fetchProfil = async () => {
   }
 };
 
-// Logout
 const logout = () => {
   localStorage.clear();
   role.value = null;
@@ -74,7 +73,6 @@ const logout = () => {
   router.push("/login");
 };
 
-// Sinkronisasi role & avatar
 const updateRole = () => {
   role.value = (localStorage.getItem("role") || "").toLowerCase().trim();
 };
@@ -101,7 +99,6 @@ onBeforeUnmount(() => {
 });
 </script>
 
-
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&display=swap');
 
@@ -109,15 +106,18 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #ffffff;
-  padding: 16px 48px;
-  width: 100%;
-  box-sizing: border-box;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  background: linear-gradient(90deg, #1E3A8A 0%, #2563EB 50%, #60A5FA 100%);
+  padding: 14px 48px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   font-family: 'Poppins', sans-serif;
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  transition: all 0.3s ease;
 }
 
-/* Kiri */
+/* Logo */
 .left {
   display: flex;
   align-items: center;
@@ -127,23 +127,24 @@ onBeforeUnmount(() => {
 .logo {
   width: 48px;
   height: 48px;
-  background: #4F46E5;
+  background: rgba(255, 255, 255, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  color: white;
-  border-radius: 8px;
+  color: #fff;
+  border-radius: 12px;
   font-size: 1.1rem;
+  backdrop-filter: blur(8px);
 }
 
 .app-name {
   font-size: 1.4rem;
   font-weight: 700;
-  color: #1F2937;
+  letter-spacing: 0.5px;
 }
 
-/* Kanan */
+/* Right Side */
 .right {
   display: flex;
   align-items: center;
@@ -160,29 +161,44 @@ onBeforeUnmount(() => {
 
 .nav-links a {
   text-decoration: none;
-  color: #374151;
+  color: #E0E7FF;
   font-size: 1rem;
   font-weight: 600;
-  transition: color 0.2s ease;
+  transition: all 0.2s ease;
+  position: relative;
 }
 .nav-links a:hover {
-  color: #4F46E5;
+  color: #fff;
+}
+.nav-links a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 0%;
+  height: 2px;
+  background: #fff;
+  transition: width 0.3s ease;
+}
+.nav-links a:hover::after {
+  width: 100%;
 }
 
-/* Switch Role Button */
+/* Switch Role */
 .switch-role {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #4F46E5;
-  background-color: #EEF2FF;
+  color: #1E3A8A;
+  background-color: #FFFFFF;
   padding: 8px 14px;
   border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
   text-decoration: none;
+  transition: all 0.2s ease;
 }
 .switch-role:hover {
   background-color: #E0E7FF;
+  color: #111827;
 }
 
 /* Avatar/Profile */
@@ -192,23 +208,22 @@ onBeforeUnmount(() => {
   border-radius: 50%;
   overflow: hidden;
   cursor: pointer;
-  border: 2px solid #D1D5DB;
+  border: 2px solid rgba(255, 255, 255, 0.6);
   transition: border-color 0.2s ease;
   display: block;
 }
 .profile:hover {
-  border-color: #4F46E5;
+  border-color: #fff;
 }
 .profile img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
 }
 
-/* Logout Button */
+/* Logout */
 .logout-btn {
-  background: #ea0909;
+  background: #EF4444;
   color: white;
   border: none;
   padding: 8px 14px;
@@ -218,6 +233,64 @@ onBeforeUnmount(() => {
   transition: background 0.2s ease;
 }
 .logout-btn:hover {
-  background: #059669;
+  background: #DC2626;
+}
+
+/* Hamburger Button */
+.menu-toggle {
+  display: none;
+  flex-direction: column;
+  cursor: pointer;
+  gap: 5px;
+}
+.menu-toggle span {
+  width: 26px;
+  height: 3px;
+  background: white;
+  border-radius: 4px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .menu-toggle {
+    display: flex;
+  }
+
+  .right {
+    position: absolute;
+    top: 70px;
+    right: 0;
+    width: 240px;
+    background: linear-gradient(180deg, #1E3A8A 0%, #2563EB 80%);
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 20px;
+    gap: 16px;
+    border-bottom-left-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    transform: translateY(-120%);
+    opacity: 0;
+    transition: all 0.3s ease;
+  }
+
+  .right.open {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .nav-links {
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .logout-btn {
+    width: 100%;
+  }
+
+  .switch-role {
+    width: 100%;
+    text-align: center;
+  }
 }
 </style>

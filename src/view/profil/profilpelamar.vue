@@ -336,7 +336,7 @@ export default {
   50% {
     transform: scale(1.3);
   }
-  100% {
+  100% {  
     transform: scale(1);
   }
 }
