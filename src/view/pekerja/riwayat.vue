@@ -348,6 +348,7 @@ select:focus {
   font-weight: 600;
   font-size: 13px;
   transition: 0.25s;
+  margin-top: 15px;
 }
 .btn-complete:hover {
   transform: scale(1.05);

@@ -2,12 +2,9 @@
   <div class="register-wrapper">
     <!-- KIRI -->
     <div class="left-section">
-      <img
-        src="C:\PAK ANDI\frontend\vue_project\src\assets\gibran.png"
-        alt="Poster kerja"
-        class="hero-image"
-      />
-    </div>
+  <img src="@/assets/gibran.png" alt="Poster kerja" class="hero-image" />
+  </div>
+
 
     <!-- KANAN -->
     <div class="right-section">

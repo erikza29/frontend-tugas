@@ -2,12 +2,8 @@
   <div class="login-wrapper">
     <!-- BAGIAN KIRI -->
     <div class="left-section">
-      <img
-        src="C:\PAK ANDI\frontend\vue_project\src\assets\gibran.png"
-        alt="login logo"
-        class="hero-image"
-      />
-    </div>
+  <img src="@/assets/gibran.png" alt="Poster kerja" class="hero-image" />
+  </div>
 
     <!-- BAGIAN KANAN -->
     <div class="right-section">

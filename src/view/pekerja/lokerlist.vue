@@ -97,13 +97,9 @@ const slides = ref([
   { image: t1 },
   {
     image: t2,
-    title: "Bangun Karier Bersama Kami 🚀",
-    subtitle: "Dapatkan pekerjaan sesuai minat dan keahlianmu.",
   },
   {
     image: t3,
-    title: "Wujudkan Masa Depan Cemerlang 🌟",
-    subtitle: "Mulai langkah kariermu hari ini bersama kerjaYo!",
   },
 ]);
 
