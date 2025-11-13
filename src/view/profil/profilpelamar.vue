@@ -2,7 +2,7 @@
   <div class="profil-page" v-if="profil">
     <div class="profil-card">
       <div class="header">
-        <div class="avatar">
+        <div class="avatar" @click="profil.gambar_url && bukaFoto()">
           <img
             v-if="profil.gambar_url"
             :src="profil.gambar_url"
@@ -10,6 +10,7 @@
           />
           <div v-else class="avatar-placeholder">No Image</div>
         </div>
+
         <div class="user-info">
           <h2 class="name">{{ profil.nama }}</h2>
           <p class="desc">{{ profil.deskripsi || "Belum ada deskripsi." }}</p>
@@ -63,6 +64,15 @@
   <div v-else class="loading">
     <p>Memuat data pelamar...</p>
   </div>
+
+    <!-- Modal Foto Profil -->
+  <div v-if="showFotoModal" class="foto-modal" @click.self="tutupFoto">
+    <div class="foto-modal-content">
+      <button class="close-btn" @click="tutupFoto">✖</button>
+      <img :src="profil.gambar_url" alt="Foto Profil Besar" />
+    </div>
+  </div>
+
 </template>
 
 <script>
@@ -78,6 +88,7 @@ export default {
       userRating: 0,
       isSubmitting: false,
       alreadyRated: false,
+      showFotoModal: false,
     };
   },
   async mounted() {
@@ -153,6 +164,12 @@ export default {
         this.isSubmitting = false;
       }
     },
+    bukaFoto() {
+    this.showFotoModal = true;
+    },
+    tutupFoto() {
+      this.showFotoModal = false;
+    }
   },
 };
 </script>
@@ -347,4 +364,59 @@ export default {
   color: #6b7280;
   padding: 3rem;
 }
+
+/* Modal Foto Profil */
+.foto-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7); /* latar agak gelap */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.foto-modal-content {
+  position: relative;
+  width: 45vw;    /* sekitar setengah layar */
+  max-width: 500px; /* batas maksimum */
+  aspect-ratio: 1 / 1; /* tetap kotak */
+  overflow: hidden;
+  animation: zoomIn 0.3s ease;
+  border-radius: 12px;
+  background: #000; /* optional, biar ada latar hitam */
+}
+
+.foto-modal-content img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* penuh tapi sesuai kotak */
+  display: block;
+}
+
+.foto-modal-content .close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+@keyframes zoomIn {
+  from {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+
 </style>

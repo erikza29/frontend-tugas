@@ -381,6 +381,13 @@ export default {
   box-shadow: 0 10px 25px rgba(6, 182, 212, 0.3);
 }
 
+.card-header {
+  display: flex;
+  flex-direction: column; /* Atur vertikal */
+  justify-content: space-between; /* Rata atas & bawah */
+  height: 300px; /* contoh tinggi container */
+
+}
 .card-header h2 {
   font-size: 1.2rem;
   color: #1e3a8a;
@@ -400,7 +407,7 @@ export default {
   margin-bottom: 1rem;
 
   display: -webkit-box;
-  -webkit-line-clamp: 3; /* maksimal 3 baris */
+  -webkit-line-clamp: 1; /* maksimal 3 baris */
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -580,10 +587,12 @@ export default {
   margin-bottom: 0.5rem;
 
   display: -webkit-box;
-  -webkit-line-clamp: 2; /* maksimal 2 baris */
+  -webkit-line-clamp: 1; /* maksimal 2 baris */
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+
 </style>
 
