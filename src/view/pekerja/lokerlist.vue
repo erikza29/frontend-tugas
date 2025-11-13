@@ -29,7 +29,10 @@
 
     <!-- 🔽 Daftar Lowongan -->
     <div id="lokerList" class="loker-container">
-      <h2 class="title">Daftar Lowongan Kerja</h2>
+      <div class="daftar-lowongan">
+       <h2 class="title">Daftar Lowongan Kerja</h2>
+       </div>
+     
 
       <!-- 🔍 Search & Filter -->
       <div class="filter-bar">
@@ -62,10 +65,10 @@
           class="job-card"
         >
           <h3 class="job-title">{{ loker.judul }}</h3>
-          <div class="job-location">📍 {{ loker.lokasi }}</div>
+          <div class="job-location"> {{ loker.lokasi }}</div>
 
           <div class="job-footer">
-            <span class="job-salary">💰 Rp {{ formatRupiah(loker.gaji) }}</span>
+            <span class="job-salary">Rp {{ formatRupiah(loker.gaji) }}</span>
             <button
               class="btn-detail"
               @click="$router.push(`/lokerdetail/${loker.id}`)"
@@ -87,23 +90,18 @@
 import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import api from "@/API/api";
 
-// 🖼️ Import gambar dari src/assets
+// Gunakan placeholder supaya tidak error import gambar
 import t1 from "@/assets/t1.jpg";
 import t2 from "@/assets/t1.jpg";
 import t3 from "@/assets/t1.jpg";
 
-// === 🏙️ Banner Slides ===
 const slides = ref([
   { image: t1 },
-  {
-    image: t2,
-  },
-  {
-    image: t3,
-  },
+  { image: t2 },
+  { image: t3 },
 ]);
 
-// === 🎞️ Slider Control ===
+// Slider
 const currentSlide = ref(0);
 let autoSlideInterval = null;
 
@@ -121,7 +119,7 @@ onMounted(() => {
 });
 onBeforeUnmount(() => clearInterval(autoSlideInterval));
 
-// === 📋 Data Lowongan ===
+// Lowongan
 const lokers = ref([]);
 const loading = ref(false);
 const searchQuery = ref("");
@@ -139,15 +137,21 @@ const getLokers = async () => {
   }
 };
 
+// Filter & sort, exclude 'tutup'
 const sortedAndFilteredLokers = computed(() => {
   let data = [...lokers.value];
 
+  // Filter status bukan 'tutup'
+  data = data.filter((l) => l.status !== "tutup");
+
+  // Filter search
   if (searchQuery.value) {
     data = data.filter((l) =>
       l.judul.toLowerCase().includes(searchQuery.value.toLowerCase())
     );
   }
 
+  // Sorting
   if (sortOption.value === "abjad") {
     data.sort((a, b) => a.judul.localeCompare(b.judul));
   } else if (sortOption.value === "terbaru") {
@@ -170,11 +174,6 @@ const sortedAndFilteredLokers = computed(() => {
 const formatRupiah = (angka) =>
   angka ? new Intl.NumberFormat("id-ID").format(angka) : "-";
 
-const scrollToList = () => {
-  const el = document.getElementById("lokerList");
-  if (el) el.scrollIntoView({ behavior: "smooth" });
-};
-
 onMounted(() => getLokers());
 </script>
 
@@ -182,10 +181,8 @@ onMounted(() => getLokers());
 /* === 🏙️ Banner Slide === */
 .banner {
   position: relative;
-  height: 520px;
+  height: 300px;
   overflow: hidden;
-  border-bottom-left-radius: 3rem;
-  border-bottom-right-radius: 3rem;
   box-shadow: 0 8px 25px rgba(6, 182, 212, 0.3);
 }
 
@@ -203,11 +200,6 @@ onMounted(() => getLokers());
   background-position: center;
   position: relative;
   filter: brightness(0.9);
-}
-
-.title {
-  text-align: center;
-  font-family: Arial, Helvetica, sans-serif;
 }
 
 /* === Navigasi Banner === */
@@ -299,6 +291,10 @@ onMounted(() => getLokers());
   outline: none;
 }
 
+.select-wrapper {
+  margin-left: 70px;
+}
+
 .filter-select {
   padding: 0.85rem 1.2rem;
   border-radius: 0.9rem;
@@ -307,7 +303,6 @@ onMounted(() => getLokers());
   font-weight: 500;
   border: none;
   cursor: pointer;
-  margin-left: 70px;
 }
 
 /* === 📋 Job Cards === */
@@ -317,22 +312,52 @@ onMounted(() => getLokers());
   gap: 1.5rem;
   margin: 2rem;
 }
-
 .job-card {
   background: linear-gradient(to bottom, #a7e1ed, #f3fdfe);
   border: 3px solid #a7e1ed;
   border-radius: 1rem;
   padding: 1.5rem;
   transition: 0.25s;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  
+  height: 150px; /* tinggi card sama */
 }
+
 .job-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
+/* Judul maksimal 2 baris */
+.job-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Lokasi maksimal 1 baris */
+.job-location {
+  font-size: 0.95rem;
+  color: #333;
+  margin-bottom: 0.8rem;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .job-footer {
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 
 .btn-detail {
@@ -349,4 +374,14 @@ onMounted(() => getLokers());
   transform: scale(1.05);
   box-shadow: 0 5px 15px rgba(6, 182, 212, 0.4);
 }
+
+
+.daftar-lowongan {
+  justify-content: center;
+  display: flex;
+}
+
+
+
+
 </style>

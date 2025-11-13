@@ -26,14 +26,14 @@
     <div v-if="!loading && filteredLoker.length > 0" class="loker-list">
       <div v-for="l in filteredLoker" :key="l.id" class="loker-card">
         <div class="card-header">
-          <h2>{{ l.judul }}</h2>
+          <h2 class="job-title">{{ l.judul }}</h2>
           <p class="desc">{{ l.deskripsi }}</p>
         </div>
 
         <div class="card-info">
-          <p><strong>📍 Lokasi:</strong> {{ l.lokasi }}</p>
-          <p><strong>💰 Gaji:</strong> Rp {{ formatRupiah(l.gaji) }}</p>
-          <p><strong>🗓 Deadline:</strong> {{ l.deadline }}</p>
+          <p><strong>Lokasi:</strong> {{ l.lokasi }}</p>
+          <p><strong> Gaji:</strong> Rp {{ formatRupiah(l.gaji) }}</p>
+          <p><strong> Deadline:</strong> {{ l.deadline }}</p>
         </div>
 
         <div class="action-buttons">
@@ -211,7 +211,26 @@ export default {
         await api.put(`/lamar/${lamaranId}/status/${status}`, {}, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        
         p.status = status;
+
+        // Jika diterima, tutup lowongan
+        if (status === "diterima") {
+          await api.put(`/loker/${this.modalLoker.id}/status`, { status: "tutup" }, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          alert("Pelamar diterima, lowongan ditutup!");
+          this.modalLoker.status = "tutup";
+        } 
+        // Jika ditolak, buka kembali lowongan
+        else if (status === "ditolak") {
+          await api.put(`/loker/${this.modalLoker.id}/status`, { status: "aktif" }, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          alert("Pekerjaan dibatalkan, lowongan dibuka kembali.");
+          this.modalLoker.status = "aktif";
+        }
+
       } catch {
         alert("Gagal mengubah status pelamar");
       } finally {
@@ -219,6 +238,7 @@ export default {
         p.target = null;
       }
     },
+
     lihatProfil(userId) {
       this.$router.push(`/profil/${userId}?loker_id=${this.modalLoker.id}`);
     },
@@ -239,53 +259,58 @@ export default {
 /* === Popup Sambutan === */
 .popup-welcome {
   position: fixed;
-  top: 20px;
-  right: 20px;
-  background: linear-gradient(90deg, #fffb00, #ec1414);
-  color: white;
-  padding: 14px 20px;
-  border-radius: 12px;
-  font-weight: 600;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  top: 60px; /* turun sedikit dari atas */
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, #ff6a00, #ff1e56);
+  color: #fff;
+  padding: 16px 28px;
+  border-radius: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  box-shadow: 0 8px 25px rgba(255, 70, 40, 0.6);
   z-index: 9999;
-  animation: slideDown 0.4s ease;
+  animation: popSlide 0.4s ease;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
-@keyframes slideDown {
+
+.popup-welcome::before {
+  content: "⚡";
+  font-size: 1.3rem;
+}
+
+@keyframes popSlide {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translate(-50%, -20px) scale(0.95);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate(-50%, 0) scale(1);
   }
 }
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.4s;
-}
-.fade-enter,
-.fade-leave-to {
-  opacity: 0;
-}
+
 
 /* === Layout Utama === */
 .loker-container {
-  max-width: 1100px;
-  margin: auto;
-  padding: 30px 20px;
+  max-width: 1150px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem;
   font-family: "Poppins", sans-serif;
-  text-align: center;
+  color: #1e3a8a;
 }
 
-/* === Judul === */
 .loker-container h1 {
+  text-align: center;
   font-size: 2rem;
   font-weight: 700;
-  background: linear-gradient(90deg, #1d4ed8, #60a5fa);
+  background: linear-gradient(to right, #06b6d4, #3b82f6);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  margin-bottom: 20px;
+  margin-bottom: 2rem;
 }
 
 /* === Search dan Tambah === */
@@ -293,132 +318,146 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 25px;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 1rem;
+  margin-bottom: 2rem;
 }
+
 .search-input {
   flex: 1;
-  padding: 10px 14px;
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
-  outline: none;
-  font-size: 0.95rem;
-  transition: 0.3s;
+  min-width: 320px;
+  padding: 0.9rem 1.2rem;
+  border-radius: 1rem;
+  border: none;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.25);
+  font-size: 1rem;
+  transition: 0.3s ease;
 }
 .search-input:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.3);
+  outline: none;
 }
+
 .btn-add {
-  background: linear-gradient(90deg, #16a34a, #22c55e);
-  padding: 10px 20px;
+  background: linear-gradient(to right, #06b6d4, #3b82f6);
+  color: white;
+  padding: 0.8rem 1.5rem;
   border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  color: #fff;
+  border-radius: 0.8rem;
   font-weight: 600;
-  transition: 0.3s;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 .btn-add:hover {
   transform: scale(1.05);
-  box-shadow: 0 4px 10px rgba(34, 197, 94, 0.3);
-}
-
-/* === Loading & Error === */
-.loading {
-  color: #2563eb;
-  font-weight: 600;
-}
-.error {
-  color: red;
-  font-weight: 600;
+  box-shadow: 0 5px 15px rgba(6, 182, 212, 0.4);
 }
 
 /* === Grid Loker === */
 .loker-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 1.5rem;
 }
 
-/* === Kartu Loker === */
+/* === Kartu Lowongan === */
 .loker-card {
-  background: #fff;
-  border-radius: 14px;
-  padding: 18px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-  transition: 0.25s;
+  background: linear-gradient(to bottom, #a7e1ed, #f3fdfe);
+  border: 3px solid #a7e1ed;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  transition: 0.25s ease;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
+
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 220px;
+  height: 300px; /* tinggi sama semua */
 }
 .loker-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 16px rgba(37, 99, 235, 0.2);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(6, 182, 212, 0.3);
 }
-.loker-card h2 {
-  font-size: 1.1rem;
+
+.card-header h2 {
+  font-size: 1.2rem;
   color: #1e3a8a;
-  margin-bottom: 6px;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* maksimal 2 baris */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .desc {
   font-size: 0.9rem;
-  color: #4b5563;
-  margin-bottom: 8px;
+  color: #374151;
   line-height: 1.4;
+  margin-bottom: 1rem;
+
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 3; /* maksimal 3 baris */
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.loker-card p {
-  font-size: 0.85rem;
-  color: #374151;
-  margin: 3px 0;
-}
+/* === Info Lowongan === */
 .card-info {
-  background: #f9fafb;
-  border-radius: 10px;
-  padding: 10px;
-  margin-bottom: 10px;
+  background: #e0f7fa;
+  border-radius: 0.8rem;
+  padding: 0.8rem 1rem;
+  margin-bottom: 1rem;
+
+  flex-shrink: 0; /* supaya tetap tidak mengecil */
 }
+.card-info p {
+  margin: 4px 0;
+  font-size: 0.9rem;
+  color: #1e3a8a;
+
+  white-space: nowrap; /* 1 baris saja */
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 
 /* === Tombol Aksi === */
 .action-buttons {
   display: flex;
+  gap: 0.5rem;
   justify-content: space-between;
-  gap: 8px;
+  flex-shrink: 0; /* supaya tetap di bawah */
 }
 .action-buttons button {
   flex: 1;
-  padding: 8px;
-  border-radius: 8px;
+  padding: 0.5rem 0.7rem;
+  border-radius: 0.8rem;
   border: none;
   cursor: pointer;
   font-weight: 600;
   font-size: 0.85rem;
-  transition: 0.25s;
+  transition: all 0.25s ease;
 }
 .btn-edit {
-  background: #facc15;
-  color: #000;
+  background: linear-gradient(to right, #facc15, #fde047);
+  color: #1e3a8a;
 }
 .btn-delete {
-  background: #dc2626;
+  background: linear-gradient(to right, #ef4444, #dc2626);
   color: #fff;
 }
 .btn-pelamar {
-  background: #2563eb;
+  background: linear-gradient(to right, #06b6d4, #3b82f6);
   color: #fff;
 }
 .action-buttons button:hover {
-  opacity: 0.9;
-  transform: scale(1.04);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
 }
 
 /* === Modal === */
@@ -433,44 +472,43 @@ export default {
 }
 .modal-content {
   background: #fff;
-  padding: 25px;
-  border-radius: 12px;
+  padding: 2rem;
+  border-radius: 1rem;
   width: 90%;
-  max-width: 550px;
+  max-width: 600px;
   position: relative;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
 }
 .close-btn {
   position: absolute;
   top: 10px;
   right: 10px;
-  background: red;
-  color: #fff;
+  background: #ef4444;
+  color: white;
   border: none;
   padding: 6px 10px;
   border-radius: 50%;
   cursor: pointer;
-  font-weight: bold;
 }
 
-/* === Pelamar === */
+/* === Pelamar Card === */
 .pelamar-card {
-  border: 2px solid #eee;
-  padding: 14px;
-  margin-bottom: 12px;
-  border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+  background: linear-gradient(to bottom, #e0f7fa, #ffffff);
+  border-radius: 0.8rem;
+  border: 2px solid #a7e1ed;
+  padding: 1rem;
+  margin-bottom: 1rem;
   transition: 0.3s ease;
 }
 .pelamar-card.accepted {
-  border-color: #16a34a;
-  background: #f0fff4;
+  border-color: #22c55e;
+  background: #ecfdf5;
 }
 .pelamar-card.rejected {
-  border-color: #dc2626;
-  background: #fff5f5;
+  border-color: #ef4444;
+  background: #fef2f2;
 }
+
 .pelamar-header {
   display: flex;
   align-items: center;
@@ -480,66 +518,72 @@ export default {
   width: 45px;
   height: 45px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  background: linear-gradient(to right, #06b6d4, #3b82f6);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: white;
   font-weight: bold;
-  margin-right: 10px;
-  font-size: 18px;
+  font-size: 1.1rem;
 }
 .status-label {
   padding: 6px 12px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 700;
-  text-transform: uppercase;
+  border-radius: 0.8rem;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 .status-label.diterima {
-  background: #16a34a;
+  background: #22c55e;
   color: white;
 }
 .status-label.ditolak {
-  background: #dc2626;
+  background: #ef4444;
   color: white;
 }
 
-/* === Tombol dalam Modal === */
+/* === Tombol Modal === */
 .actions {
   display: flex;
   gap: 10px;
-  margin-top: 8px;
+  margin-top: 10px;
 }
 .btn {
   flex: 1;
-  padding: 10px;
-  border-radius: 8px;
   border: none;
+  padding: 0.7rem;
+  border-radius: 0.8rem;
   font-weight: 600;
   color: white;
   cursor: pointer;
-  transition: all 0.25s;
-}
-.btn.terima {
-  background: #16a34a;
-}
-.btn.tolak {
-  background: #dc2626;
+  transition: 0.25s ease;
 }
 .btn.profil {
-  background: #0ea5e9;
+  background: linear-gradient(to right, #06b6d4, #3b82f6);
 }
-.btn.profil:hover {
-  background: #0284c7;
+.btn.terima {
+  background: linear-gradient(to right, #16a34a, #22c55e);
 }
-.btn.active {
-  opacity: 0.9;
+.btn.tolak {
+  background: linear-gradient(to right, #dc2626, #ef4444);
+}
+.btn:hover {
   transform: scale(1.05);
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 5px 15px rgba(6, 182, 212, 0.3);
 }
 .btn[disabled] {
   opacity: 0.6;
   cursor: not-allowed;
 }
+.job-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* maksimal 2 baris */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 </style>
+
