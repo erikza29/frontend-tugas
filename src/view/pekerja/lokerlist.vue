@@ -381,7 +381,9 @@ onMounted(() => getLokers());
   display: flex;
 }
 
-
+.filter-select option {
+  color: #333;
+}
 
 
 </style>

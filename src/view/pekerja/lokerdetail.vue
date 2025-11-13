@@ -3,7 +3,7 @@
     <!-- Banner -->
     <div class="banner-section">
       <div class="banner">
-        <button class="btn-back" @click="$router.back()">⬅ Kembali</button>
+        <button class="btn-back" @click="$router.back()">Kembali</button>
         <h2>{{ loker?.judul }}</h2>
       </div>
     </div>
@@ -25,11 +25,11 @@
         <div class="detail-card">
           <h3>Detail Pekerjaan</h3>
           <div class="detail-info">
-            <p><span>📍 Lokasi :</span> {{ loker?.lokasi }}</p>
-            <p><span>💰 Gaji :</span> Rp {{ formatRupiah(loker?.gaji) }}</p>
-            <p><span>⏳ Deadline :</span> {{ loker?.deadline }}</p>
+            <p><span>Lokasi :</span> {{ loker?.lokasi }}</p>
+            <p><span>Gaji :</span> Rp {{ formatRupiah(loker?.gaji) }}</p>
+            <p><span>Deadline :</span> {{ loker?.deadline }}</p>
           </div>
-          <button class="apply-button" @click="lamarLoker">🚀 Lamar Sekarang</button>
+          <button class="apply-button" @click="lamarLoker">Lamar Sekarang</button>
         </div>
       </div>
     </div>
