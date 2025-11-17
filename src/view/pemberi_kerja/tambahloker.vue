@@ -23,15 +23,50 @@
         <input v-model="form.gaji" type="number" required />
       </div>
 
+      <!-- 🔥 DEADLINE TYPE -->
       <div class="form-group">
-        <label>Deadline</label>
-        <input v-model="form.deadline" type="date" required />
+        <label>Jenis Deadline</label>
+        <select v-model="form.deadline_unit" required>
+          <option disabled value="">-- pilih jenis deadline --</option>
+          <option value="jam">Jam</option>
+          <option value="hari">Hari</option>
+          <option value="bulan">Bulan</option>
+        </select>
+      </div>
+
+      <!-- 🔥 DEADLINE VALUE -->
+      <div class="form-group">
+        <label>Nilai Deadline (angka)</label>
+        <input
+          v-model="form.deadline_value"
+          type="number"
+          min="1"
+          required
+          placeholder="contoh: 24"
+        />
+      </div>
+
+      <!-- 🔥 INPUT GAMBAR BARU -->
+      <div class="form-group">
+        <label>Gambar (Opsional)</label>
+        <input type="file" accept="image/*" @change="previewGambar" />
+
+        <!-- PREVIEW -->
+        <img
+          v-if="preview"
+          :src="preview"
+          class="img-preview"
+          alt="Preview Gambar"
+        />
       </div>
 
       <button type="submit" :disabled="loading">
         {{ loading ? "Menyimpan..." : "Simpan" }}
       </button>
-      <button type="button" @click="$router.push('/daftarloker')">Batal</button>
+
+      <button type="button" @click="$router.push('/daftarloker')">
+        Batal
+      </button>
     </form>
 
     <p v-if="error" class="error">{{ error }}</p>
@@ -50,20 +85,44 @@ export default {
         deskripsi: "",
         lokasi: "",
         gaji: "",
-        deadline: ""
+        deadline_unit: "",   // NEW
+        deadline_value: "",  // NEW
       },
+      gambarFile: null,
+      preview: null,
       loading: false,
-      error: ""
+      error: "",
     };
   },
   methods: {
+    previewGambar(e) {
+      const file = e.target.files[0];
+      this.gambarFile = file;
+      this.preview = URL.createObjectURL(file);
+    },
+
     async simpanLoker() {
       this.loading = true;
       this.error = "";
 
       try {
-        // 🔧 Ubah endpoint dari "/lokers" → "/loker"
-        const res = await api.post("/loker", this.form);
+        const fd = new FormData();
+        fd.append("judul", this.form.judul);
+        fd.append("deskripsi", this.form.deskripsi);
+        fd.append("lokasi", this.form.lokasi);
+        fd.append("gaji", this.form.gaji);
+
+        // 🔥 NEW: deadline fields
+        fd.append("deadline_unit", this.form.deadline_unit);
+        fd.append("deadline_value", this.form.deadline_value);
+
+        if (this.gambarFile) {
+          fd.append("gambar", this.gambarFile);
+        }
+
+        const res = await api.post("/loker", fd, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
 
         if (res.data.success) {
           alert("Lowongan berhasil ditambahkan");
@@ -73,12 +132,13 @@ export default {
         }
       } catch (err) {
         console.error("Error simpanLoker:", err);
-        this.error = err.response?.data?.message || "Terjadi kesalahan server";
+        this.error =
+          err.response?.data?.message || "Terjadi kesalahan server";
       } finally {
         this.loading = false;
       }
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -91,11 +151,18 @@ export default {
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
-
 h1 {
   text-align: center;
   margin-bottom: 20px;
   color: #333;
+}
+
+.img-preview {
+  margin-top: 10px;
+  width: 180px;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid #ddd;
 }
 
 .form-group {
@@ -110,7 +177,8 @@ label {
 }
 
 input,
-textarea {
+textarea,
+select {
   width: 100%;
   padding: 10px;
   border: 1px solid #ccc;
@@ -121,7 +189,8 @@ textarea {
 }
 
 input:focus,
-textarea:focus {
+textarea:focus,
+select:focus {
   border-color: #007bff;
 }
 

@@ -2,8 +2,9 @@
   <div class="job-wrapper">
     <!-- Banner -->
     <div class="banner-section">
+      <button class="btn-close" @click="$router.back()" > <p>⬅</p></button>
+
       <div class="banner">
-        <button class="btn-back" @click="$router.back()">Kembali</button>
         <h2>{{ loker?.judul }}</h2>
       </div>
     </div>
@@ -12,11 +13,9 @@
     <div class="main-content">
       <!-- Kolom Kiri -->
       <div class="left-column">
-        <div class="description">
-          <h3>Deskripsi Pekerjaan</h3>
-          <div class="description-content">
-            <p>{{ loker?.deskripsi }}</p>
-          </div>
+        <div class="image-left" v-if="loker">
+            <img :src="loker?.gambar_url || gibran" alt=""  class="clickable-image"
+             @click="openPreview(loker?.gambar_url || gibran)">
         </div>
       </div>
 
@@ -27,23 +26,72 @@
           <div class="detail-info">
             <p><span>Lokasi :</span> {{ loker?.lokasi }}</p>
             <p><span>Gaji :</span> Rp {{ formatRupiah(loker?.gaji) }}</p>
-            <p><span>Deadline :</span> {{ loker?.deadline }}</p>
+            <p><span>Deadline :</span> {{ formatDeadline(loker) }}</p>
+
           </div>
           <button class="apply-button" @click="lamarLoker">Lamar Sekarang</button>
         </div>
       </div>
     </div>
+    <div class="contact-info">
+      <div class="contact">
+        <a
+          :href="`https://wa.me/${formatWhatsapp(loker?.user?.whatsapp)}`"
+          class="contact-number-phone"
+        >
+          Whatsapp : {{ loker?.user?.whatsapp || '-' }}
+        </a>
+
+        <a
+          :href="`https://wa.me/${formatWhatsapp(loker?.user?.whatsapp)}`"
+          class="contact-name"
+        >
+          {{ loker?.user?.profil?.nama || 'Tanpa Nama' }}
+        </a>
+
+      </div>     
+      
+      <p>Klik untuk menghubungi!</p>
+  
+    </div>  
+    <div class="main-content-bottom">
+      <div class="description">
+          <h3>Deskripsi Pekerjaan</h3>
+          <div class="description-content">
+            <p>{{ loker?.deskripsi }}</p>
+          </div>
+        </div>
+    </div>
   </div>
+  <!-- === Fullscreen Image Viewer === -->
+<!-- === Fullscreen Image Modal === -->
+<div v-if="previewImage" class="image-modal" @click="closePreview">
+  <img 
+    :src="previewImage" 
+    class="image-preview"
+    @click.stop
+  >
+  <button class="close-preview" @click="closePreview">×</button>
+</div>
+
+
 </template>
 
 <script>
 import api from "@/API/api";
+import gibran from '@/assets/gibran.png';
 
 export default {
   name: "LokerDetail",
   data() {
-    return { loker: null };
+    return { 
+      loker: null,
+      gibran,
+      previewImage: null,
+
+    };
   },
+
   methods: {
     async getDetailLoker() {
       try {
@@ -54,6 +102,7 @@ export default {
         alert("Gagal memuat detail loker");
       }
     },
+
     async lamarLoker() {
       try {
         await api.post(
@@ -66,16 +115,52 @@ export default {
         alert(`Gagal melamar: ${err.response?.data?.message || "Terjadi kesalahan"}`);
       }
     },
+
+    formatDeadline(loker) {
+      if (!loker || !loker.deadline_value) return "Tidak ada";
+
+      const unit = loker.deadline_unit || loker.deadline_type || "";
+
+      const unitMap = {
+        hours: "Jam",
+        days: "Hari",
+        months: "Bulan",
+      };
+
+      const label = unitMap[unit] || "Hari"; // fallback default
+
+      return `${loker.deadline_value} ${label}`;
+    },
+
+    openPreview(src) {
+      this.previewImage = src;
+    },
+
+    closePreview() {
+      this.previewImage = null;
+    },
+
+
     formatRupiah(angka) {
       if (!angka) return 0;
       return new Intl.NumberFormat("id-ID").format(angka);
     },
+
+    // 🔥 Tambahan untuk format nomor WA (agar auto wa.me)
+    formatWhatsapp(no) {
+      if (!no) return "";
+      no = no.replace(/\D/g, ""); // buang karakter aneh
+      if (no.startsWith("0")) return "62" + no.substring(1);
+      return no;
+    },
   },
+
   mounted() {
     this.getDetailLoker();
   },
 };
 </script>
+
 
 <style scoped>
 * {
@@ -98,13 +183,13 @@ export default {
 .banner-section {
   width: 100%;
   display: flex;
-  justify-content: center;
-  margin-top: 2rem;
+  align-items: center;
+  justify-content: space-between;
+  
 }
 
 .banner {
   background: linear-gradient(to bottom, #a0e6f6, #f9ffff);
-  border-radius: 20px;
   padding: 35px 60px;
   color: white;
   text-align: center;
@@ -112,6 +197,11 @@ export default {
   width: 80%;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
   color: black;
+  margin-right: 19vh;
+  border-end-start-radius: 20px;
+  border-end-end-radius: 20px;
+  margin-top: 0px;
+  height: fit-content;
 }
 
 .btn-back {
@@ -147,16 +237,26 @@ export default {
   gap: 2rem;
   align-items: start;
 }
+.main-content-bottom {
+  margin: 0px auto;
+  margin-top: 2rem;
+  width: 154vh;
+  gap: 2rem;
+  align-items: center;
+  display: flex;
+  justify-content: start;
+}
 
 /* === Deskripsi === */
 .description {
-  background: white;
+  background: rgb(255, 255, 255);
   padding: 2rem;
   border-radius: 15px;
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
-  height: 400px;
+  height: 100%;
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 .description h3 {
@@ -192,9 +292,14 @@ export default {
 .detail-card {
   background: white;
   padding: 2rem;
+  margin-left: 0px;
   border-radius: 15px;
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
   text-align: center;
+  height: fit-content;
+  display: flex;
+  flex-direction: column;
+
 }
 
 .detail-card h3 {
@@ -262,4 +367,165 @@ export default {
     width: 90%;
   }
 }
+
+.image-left {
+  margin-right: 0px;
+  padding-right: 0px;
+}
+
+.image-left img {
+  width: 100vh;
+  height: 45vh;
+  object-fit: cover;     /* tetap crop */
+
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+
+.contact {
+  width: fit-content;
+
+  color: white;
+  font-size: 20px;
+  font-weight: 500;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: 0.3s;
+  display: flex;
+  margin-right: 15px;
+  justify-content: start;
+  align-items: center;
+  border:3px solid #60D2DC;
+
+}
+
+.contact-number-phone {
+  font-size: 15px;
+  background: linear-gradient(to right, #4789b2, #60d2dc);
+  padding: 15px;
+  border-radius: 10px;
+  font-weight: 600;
+  z-index: 3;
+  text-decoration: none;
+  color: white;
+}
+.contact-name {
+  font-size: 15px;
+  color: rgb(24, 23, 24);
+  font-weight: 600;
+  text-decoration: none;
+  color: rgb(28, 27, 29);
+  padding: 15px;
+  border-radius: 10px;
+}
+.contact p {
+  font-size: 15px;
+  color: rgb(24, 23, 24);
+  font-weight: 600;
+
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.contact-info {
+  width: 80%;
+  display: flex;
+  justify-content: start;
+  align-items: center;
+}
+
+.contact-info p {
+  color: gray;
+  font-weight: 400;
+}
+
+.btn-close {
+  display: flex;
+  margin-left: 5vh;
+  width: 10vh;
+  height: 10vh;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  font-size: 50px;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(180deg, #70b7ff, #9cc7ff);
+  box-shadow: 0 6px 18px rgba(30, 64, 175, 0.28);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: .15s ease;
+  font-family: 'Poppins', sans-serif;
+  text-align: center;
+  font-weight: 600;
+}
+.btn-close:hover {
+  transform: translateY(-3px) scale(1.05);
+}
+.btn-close:active {
+  transform: scale(0.95);
+}
+
+/* === Fullscreen Image Modal === */
+.image-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(3px);
+}
+
+.image-preview {
+  max-width: 95%;
+  max-height: 95%;
+  border-radius: 12px;
+  box-shadow: 0 10px 35px rgba(0,0,0,0.5);
+  object-fit: contain; /* Jaga rasio asli */
+  animation: zoomIn .18s ease;
+}
+
+@keyframes zoomIn {
+  from {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.close-preview {
+  position: fixed;
+  top: 25px;
+  right: 25px;
+  background: white;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  font-size: 30px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.clickable-image {
+  cursor: zoom-in;
+}
+
+
 </style>

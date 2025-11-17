@@ -29,6 +29,22 @@
           <input v-model="form.deadline" type="date" required />
         </div>
 
+        <!-- Upload gambar -->
+        <div class="form-group">
+          <label>Gambar (Opsional)</label>
+          <input type="file" accept="image/*" @change="onImageChange" />
+
+          <!-- Preview: gunakan gambar_url dari API bila ada, atau preview file baru -->
+          <div v-if="previewUrl" class="preview-container">
+            <p>Preview gambar:</p>
+            <img :src="previewUrl" class="preview-image" />
+          </div>
+          <div v-else-if="form.gambar_url" class="preview-container">
+            <p>Gambar saat ini:</p>
+            <img :src="form.gambar_url" class="preview-image" />
+          </div>
+        </div>
+
         <div class="btn-group">
           <button type="submit" class="btn-primary" :disabled="loading">
             {{ loading ? "Menyimpan..." : "Simpan Perubahan" }}
@@ -53,55 +69,114 @@ export default {
   data() {
     return {
       form: {
+        id: null,
         judul: "",
         deskripsi: "",
         lokasi: "",
         gaji: "",
         deadline: "",
-        user_id: null,
+        gambar: null,       // nama file di DB
+        gambar_url: null,   // URL lengkap dari API
       },
+      newGambarFile: null,   // File yang dipilih user (untuk upload)
+      previewUrl: null,      // Object URL untuk preview file baru
       loading: false,
       loaded: false,
       error: "",
     };
   },
+
   async mounted() {
-  try {
-    const id = this.$route.params.id;
-    const res = await api.get(`/loker/${id}`); // ✅ ubah jadi singular
-    if (res.data.success) {
-      this.form = res.data.data;
-      this.loaded = true;
-    } else {
-      this.error = res.data.message || "Gagal memuat data";
-    }
-  } catch (err) {
-    this.error = err.response?.data?.message || "Terjadi kesalahan server";
-  }
-},
-
-methods: {
-  async updateLoker() {
-    this.loading = true;
-    this.error = "";
-
-    try {
-      const id = this.$route.params.id;
-      const res = await api.put(`/loker/${id}`, this.form); // ✅ ubah juga di sini
-      if (res.data.success) {
-        alert("Lowongan berhasil diperbarui");
-        this.$router.push("/daftarloker");
-      } else {
-        this.error = res.data.message || "Gagal memperbarui lowongan";
-      }
-    } catch (err) {
-      this.error = err.response?.data?.message || "Terjadi kesalahan server";
-    } finally {
-      this.loading = false;
-    }
+    await this.loadLoker();
   },
-},
 
+  beforeUnmount() {
+    // revoke object URL kalau ada
+    if (this.previewUrl) URL.revokeObjectURL(this.previewUrl);
+  },
+
+  methods: {
+    async loadLoker() {
+      try {
+        const id = this.$route.params.id;
+        const res = await api.get(`/loker/${id}`);
+        if (res.data && res.data.success) {
+          const data = res.data.data;
+          this.form.id = data.id;
+          this.form.judul = data.judul;
+          this.form.deskripsi = data.deskripsi;
+          this.form.lokasi = data.lokasi;
+          this.form.gaji = data.gaji;
+          this.form.deadline = data.deadline;
+          this.form.gambar = data.gambar ?? null;
+          // jika backend sudah mengirim gambar_url gunakan itu
+          this.form.gambar_url = data.gambar_url ?? null;
+          this.loaded = true;
+        } else {
+          this.error = res.data.message || "Gagal memuat data";
+        }
+      } catch (err) {
+        console.error("loadLoker error", err);
+        this.error = err.response?.data?.message || "Terjadi kesalahan server";
+      }
+    },
+
+    onImageChange(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      // revoke previous preview jika ada
+      if (this.previewUrl) URL.revokeObjectURL(this.previewUrl);
+
+      this.newGambarFile = file;
+      this.previewUrl = URL.createObjectURL(file);
+    },
+
+    async updateLoker() {
+      this.loading = true;
+      this.error = "";
+
+      try {
+        const id = this.$route.params.id;
+
+        // siapkan FormData
+        const fd = new FormData();
+        fd.append("judul", this.form.judul);
+        fd.append("deskripsi", this.form.deskripsi);
+        fd.append("lokasi", this.form.lokasi);
+        fd.append("gaji", this.form.gaji);
+        fd.append("deadline", this.form.deadline);
+
+        // PENTING: backend expect field name 'gambar'
+        if (this.newGambarFile) {
+          fd.append("gambar", this.newGambarFile);
+        }
+
+        // override method -> PUT (karena multipart)
+        // gunakan query ?_method=PUT agar controller menerima sebagai PUT
+        const res = await api.post(`/loker/${id}?_method=PUT`, fd, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+
+        if (res.data && res.data.success) {
+          alert("Lowongan berhasil diperbarui");
+          this.$router.push("/daftarloker");
+        } else {
+          this.error = res.data.message || "Gagal memperbarui lowongan";
+        }
+      } catch (err) {
+        console.error("updateLoker error:", err);
+        // handle validation error 422
+        if (err.response?.status === 422) {
+          const messages = err.response.data.errors || err.response.data.message;
+          this.error = typeof messages === "string" ? messages : JSON.stringify(messages);
+        } else {
+          this.error = err.response?.data?.message || "Terjadi kesalahan server";
+        }
+      } finally {
+        this.loading = false;
+      }
+    },
+  },
 };
 </script>
 
@@ -119,6 +194,18 @@ methods: {
   min-height: 100vh;
   background: #f9fbff;
   padding: 40px 24px;
+}
+
+.preview-container {
+  margin-top: 10px;
+}
+.preview-image {
+  width: 180px;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  display: block;
+  margin-top: 6px;
 }
 
 .edit-card {

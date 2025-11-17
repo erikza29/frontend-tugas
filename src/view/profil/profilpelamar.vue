@@ -12,9 +12,20 @@
         </div>
 
         <div class="user-info">
-          <h2 class="name">{{ profil.nama }}</h2>
-          <p class="desc">{{ profil.deskripsi || "Belum ada deskripsi." }}</p>
+          <div class="identity">
+            <div class="identity-left">
+              <h1>{{ profil.nama }}</h1>
+            </div>  
+            <div class="identity-right">
+              <img :src=icwa alt="" >
+              <h1>{{ profil.whatsapp }}</h1>
+            </div>
+          </div>
+          
         </div>
+      </div>
+      <div class="description">
+        <p class="desc">{{ profil.deskripsi || "Belum ada deskripsi." }}</p>
       </div>
 
       <!-- Rating Section -->
@@ -77,7 +88,7 @@
 
 <script>
 import api from "@/API/api";
-
+import icwa from "@/assets/ic_wa.png";
 export default {
   name: "ProfilPelamar",
   props: ["id"],
@@ -89,6 +100,7 @@ export default {
       isSubmitting: false,
       alreadyRated: false,
       showFotoModal: false,
+      icwa,
     };
   },
   async mounted() {
@@ -180,14 +192,14 @@ export default {
   justify-content: center;
   align-items: flex-start;
   padding: 2rem;
-  min-height: 100vh;
+  min-height: 100vh;  
   background: linear-gradient(135deg, #eef2ff, #f9fafb);
   font-family: "Poppins", sans-serif;
 }
 
 .profil-card {
   width: 100%;
-  max-width: 520px;
+  max-width: 750px;
   background: white;
   border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
@@ -201,6 +213,7 @@ export default {
   gap: 1.2rem;
   border-bottom: 1px solid #e5e7eb;
   padding-bottom: 1rem;
+  align-items: center;
 }
 
 .avatar img {
@@ -418,5 +431,62 @@ export default {
   }
 }
 
+
+.identity {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;           /* 👉 teks panjang bisa turun */
+  gap: 1rem;
+
+}
+
+.identity-left,
+.identity-right {
+  display: flex;
+
+  border-radius: 6px;
+  color: white;
+  word-break: break-word;    /* 👉 pecah kata panjang */
+  overflow-wrap: break-word; 
+  align-items: center;
+  /* 👉 pastikan tetap wrap */
+}
+
+/* kiri */
+.identity-left {
+  flex: 1;                   /* 👉 fleksibel agar rapi */
+  min-width: 200px;
+}
+
+.identity-left h1 {
+  font-size: 25px;
+  font-weight: 600;
+  color: #000;
+}
+.identity-right h1 {
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 10px;
+  color: rgb(255, 255, 255);
+}
+
+/* kanan */
+.identity-right {
+  width: fit-content;
+  background: linear-gradient(135deg, #128C7E, #25D366);
+  display: flex;
+  padding: 1px 10px;
+  max-width: 200px;          /* 👉 biar tidak terlalu lebar */
+  min-width: 120px;
+  text-align: right;
+  justify-content: center;
+}
+
+.identity-right img {
+  width:20px;
+  height: 20px;
+  margin-right: 10px;
+}
 
 </style>

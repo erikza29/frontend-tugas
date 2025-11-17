@@ -29,6 +29,14 @@
           class="input"
           placeholder="Ceritakan sedikit tentang dirimu..."
         ></textarea>
+        <label>Nomor WhatsApp</label>
+        <input
+          v-model="form.whatsapp"
+          type="text"
+          class="input"
+          placeholder="08xxxxxxxxxx"
+        />
+
       </div>
 
       <!-- Tombol Simpan -->
@@ -52,38 +60,54 @@ export default {
         deskripsi: "",
         gambar_url: null,
         foto: null,
+        whatsapp: "", // ⬅️ TAMBAHAN
       },
       preview: null,
       loading: false,
     };
   },
+
   async mounted() {
     this.getProfil();
   },
+
   methods: {
     async getProfil() {
       try {
         const { data } = await api.get("/profil", {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
-        if (data?.data) this.form = { ...data.data, foto: null };
+
+        if (data?.data) {
+          this.form = {
+            ...data.data,
+            foto: null, // jangan hilangkan ini
+            whatsapp: data.data.whatsapp || "", // ⬅️ TAMBAHAN
+          };
+        }
       } catch (err) {
         console.error("Error getProfil:", err);
       }
     },
+
     onFileChange(e) {
       const file = e.target.files[0];
       if (!file) return;
       this.preview = URL.createObjectURL(file);
       this.form.foto = file;
     },
+
     async saveProfil() {
       this.loading = true;
       try {
         const fd = new FormData();
         fd.append("nama", this.form.nama);
         fd.append("deskripsi", this.form.deskripsi);
-        if (this.form.foto) fd.append("foto", this.form.foto);
+        fd.append("whatsapp", this.form.whatsapp); // ⬅️ TAMBAHAN
+
+        if (this.form.foto) {
+          fd.append("foto", this.form.foto);
+        }
 
         const { data } = await api.post("/profil", fd, {
           headers: {
@@ -100,6 +124,7 @@ export default {
         setTimeout(() => this.$router.push("/profil"), 200);
       } catch (error) {
         console.error("Error saveProfil:", error);
+
         if (error.response?.status === 422) {
           const msg = Object.entries(error.response.data.errors)
             .map(([k, v]) => `${k}: ${v.join(", ")}`)
@@ -115,6 +140,7 @@ export default {
   },
 };
 </script>
+
 
 <style scoped>
 .profil-wrapper {
