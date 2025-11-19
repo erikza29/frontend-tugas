@@ -1,11 +1,9 @@
 <template>
   <div class="loker-page">
-    <!-- 🏙️ Banner Slider -->
     <section class="banner">
-      <div
-        class="banner-track"
-        :style="{ transform: `translateX(-${currentSlide * 100}%)` }"
-      >
+      <div class="banner-track"
+        :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
+
         <div
           v-for="(slide, index) in slides"
           :key="index"
@@ -27,13 +25,11 @@
       </div>
     </section>
 
-    <!-- 🔽 Daftar Lowongan -->
     <div id="lokerList" class="loker-container">
       <div class="daftar-lowongan">
         <h2 class="title">Daftar Lowongan Kerja</h2>
       </div>
 
-      <!-- 🔍 Search & Filter -->
       <div class="filter-bar">
         <div class="search-wrapper">
           <i class="fa-solid fa-magnifying-glass search-icon"></i>
@@ -61,17 +57,16 @@
         <div
           v-for="loker in sortedAndFilteredLokers"
           :key="loker.id"
-          class="job-card">
-
+          class="job-card"
+        >
           <div class="image-new">
-            <img :src="loker.gambar_url ? loker.gambar_url : gibran" alt="Gambar Lowongan">
+            <img :src="loker.gambar_url ? loker.gambar_url : gibran" alt="Gambar Lowongan" />
           </div>
 
           <div class="job-desc">
             <h3 class="job-title">{{ loker.judul }}</h3>
             <div class="job-location">{{ loker.lokasi }}</div>
 
-            <!-- ⭐ Deadline Ditampilkan DI SINI -->
             <div class="job-location">
               Deadline: {{ formatDeadline(loker) }}
             </div>
@@ -86,7 +81,6 @@
               </button>
             </div>
           </div>
-
         </div>
 
         <div v-if="sortedAndFilteredLokers.length === 0" class="no-result">
@@ -97,15 +91,13 @@
   </div>
 </template>
 
-
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import api from "@/API/api";
 
-// Gunakan placeholder supaya tidak error import gambar
 import t1 from "@/assets/t1.jpg";
-import t2 from "@/assets/t1.jpg";
-import t3 from "@/assets/t1.jpg";
+import t2 from "@/assets/gibran.png";
+import t3 from "@/assets/bunga.jpeg";
 
 import gibran from "@/assets/gibran.png";
 
@@ -115,7 +107,6 @@ const slides = ref([
   { image: t3 },
 ]);
 
-// Slider
 const currentSlide = ref(0);
 let autoSlideInterval = null;
 
@@ -128,18 +119,11 @@ const prevSlide = () => {
 };
 const setSlide = (i) => (currentSlide.value = i);
 
-onMounted(() => {
-  autoSlideInterval = setInterval(nextSlide, 5000);
-});
-onBeforeUnmount(() => clearInterval(autoSlideInterval));
-
-// Lowongan
 const lokers = ref([]);
 const loading = ref(false);
 const searchQuery = ref("");
 const sortOption = ref("");
 
-// Ambil data lowongan
 const getLokers = async () => {
   loading.value = true;
   try {
@@ -152,11 +136,9 @@ const getLokers = async () => {
   }
 };
 
-// Format deadline
 const formatDeadline = (loker) => {
   if (!loker.deadline_value) return "Tidak ada";
 
-  // Pastikan unit selalu ada
   const unit = loker.deadline_unit || loker.deadline_type || "";
 
   const unitMap = {
@@ -165,14 +147,11 @@ const formatDeadline = (loker) => {
     months: "Bulan",
   };
 
-  // Jika unit tidak dikenali → fallback default
   const label = unitMap[unit] || "Hari";
 
   return `${loker.deadline_value} ${label}`;
 };
 
-
-// Filter & sort, exclude 'tutup'
 const sortedAndFilteredLokers = computed(() => {
   let data = [...lokers.value];
 
@@ -206,12 +185,14 @@ const sortedAndFilteredLokers = computed(() => {
 const formatRupiah = (angka) =>
   angka ? new Intl.NumberFormat("id-ID").format(angka) : "-";
 
-onMounted(() => getLokers());
+onMounted(() => {
+  autoSlideInterval = setInterval(nextSlide, 5000);
+  getLokers();
+});
+onBeforeUnmount(() => clearInterval(autoSlideInterval));
 </script>
 
-
 <style scoped>
-/* === 🏙️ Banner Slide === */
 .banner {
   position: relative;
   height: 300px;
@@ -221,21 +202,27 @@ onMounted(() => getLokers());
 
 .banner-track {
   display: flex;
-  width: 100%;
   height: 100%;
   transition: transform 1s ease-in-out;
 }
+
+.banner {
+  overflow: hidden;
+}
+
+
+
 
 .banner-slide {
   min-width: 100%;
   height: 100%;
   background-size: cover;
   background-position: center;
-  position: relative;
-  filter: brightness(0.9);
+  flex-shrink: 0;
 }
 
-/* === Navigasi Banner === */
+
+
 .nav-btn {
   position: absolute;
   top: 50%;
@@ -260,7 +247,6 @@ onMounted(() => getLokers());
   right: 15px;
 }
 
-/* === Indicator === */
 .indicator {
   position: absolute;
   bottom: 15px;
@@ -282,19 +268,19 @@ onMounted(() => getLokers());
   transform: scale(1.2);
 }
 
-/* === 🔍 Search Bar === */
 .filter-bar {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 1rem;
   margin-bottom: 2rem;
+  padding: 0 1rem;
 }
 
 .search-wrapper {
   position: relative;
-  flex: 1;
-  min-width: 320px;
+  flex: 1 1 220px;
+  min-width: 0;
   max-width: 600px;
 }
 
@@ -326,6 +312,7 @@ onMounted(() => getLokers());
 
 .select-wrapper {
   margin-left: 70px;
+  flex: 0 0 auto;
 }
 
 .filter-select {
@@ -338,14 +325,14 @@ onMounted(() => getLokers());
   cursor: pointer;
 }
 
-/* === 📋 Job Cards === */
 .job-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  justify-content: space-around;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 1.5rem;
   margin: 2rem;
+  align-items: start;
 }
+
 .job-card {
   background: linear-gradient(to bottom, #a7e1ed, #f3fdfe);
   border: 3px solid #a7e1ed;
@@ -354,8 +341,9 @@ onMounted(() => getLokers());
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  width: 315px;
-  height: fit-300px; /* tinggi card sama */
+  width: 100%;
+  min-height: 320px;
+  overflow: hidden;
 }
 
 .job-card:hover {
@@ -363,12 +351,10 @@ onMounted(() => getLokers());
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
-/* Judul maksimal 2 baris */
 .job-title {
   font-size: 16px;
   font-weight: 600;
   margin-bottom: 0.5rem;
-
   display: -webkit-box;
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
@@ -376,12 +362,10 @@ onMounted(() => getLokers());
   text-overflow: ellipsis;
 }
 
-/* Lokasi maksimal 1 baris */
 .job-location {
   font-size: 0.95rem;
   color: #333;
   margin-bottom: 0.8rem;
-
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -391,6 +375,8 @@ onMounted(() => getLokers());
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .btn-detail {
@@ -408,7 +394,6 @@ onMounted(() => getLokers());
   box-shadow: 0 5px 15px rgba(6, 182, 212, 0.4);
 }
 
-
 .daftar-lowongan {
   justify-content: center;
   display: flex;
@@ -419,22 +404,22 @@ onMounted(() => getLokers());
 }
 
 .image {
-  width: 310px; /* Tentukan lebar kontainer */
-  height: 200px; /* Tentukan tinggi kontainer (misalnya, untuk tampilan kotak) */
-  overflow: hidden; /* Pastikan bagian gambar yang terpotong tidak terlihat */
+  width: 310px;
+  height: 200px;
+  overflow: hidden;
 }
 
 .image img {
-  width: 100%; /* Gambar akan mengisi lebar kontainer */
-  height: 100%; /* Gambar akan mengisi tinggi kontainer */
-  object-fit: cover; /* Ini yang melakukan cropping otomatis */
-  object-position: center; /* (Opsional) Memusatkan bagian gambar yang ingin ditampilkan */
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
   border-radius: 12px;
 }
 
 .image-new {
   width: 100%;
-  height: 180px; /* opsional, bisa dinaikkan 200-240px jika ingin lebih besar */
+  height: 180px;
   overflow: hidden;
   border-top-right-radius: 12px;
   border-top-left-radius: 12px;
@@ -444,9 +429,9 @@ onMounted(() => getLokers());
 .image-new img {
   width: 100%;
   height: 100%;
-  object-fit: cover;     /* crop otomatis rapi */
+  object-fit: cover;
   object-position: center;
-    margin-bottom: 0px;
+  margin-bottom: 0px;
 }
 
 .job-desc {
@@ -460,5 +445,94 @@ onMounted(() => getLokers());
   font-weight: 600;
 }
 
+@media (max-width: 900px) {
+  .banner {
+    height: 220px;
+  }
+
+  .nav-btn {
+    font-size: 1.6rem;
+    padding: 0.4rem 0.8rem;
+  }
+
+  .select-wrapper {
+    margin-left: 30px;
+  }
+}
+
+@media (max-width: 640px) {
+  .banner {
+    height: 160px;
+  }
+
+  .nav-btn {
+    display: none;
+  }
+
+  .indicator {
+    bottom: 10px;
+  }
+
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .search-wrapper {
+    flex: 1 1 auto;
+    max-width: 100%;
+  }
+
+  .select-wrapper {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .filter-select {
+    width: 100%;
+  }
+
+  .job-grid {
+    grid-template-columns: repeat(1, 1fr);
+    margin: 1rem;
+    gap: 1rem;
+  }
+
+  .image-new {
+    height: 140px;
+  }
+
+  .job-title {
+    font-size: 15px;
+  }
+
+  .job-location {
+    white-space: normal;
+  }
+}
+
+@media (min-width: 1200px) {
+  .job-grid {
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    margin: 2.5rem;
+  }
+}
+
+.loker-page {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+:global(body) {
+  overflow-x: hidden;
+}
+
+
+
+.job-grid {
+  margin: 1rem;
+}
 
 </style>
+

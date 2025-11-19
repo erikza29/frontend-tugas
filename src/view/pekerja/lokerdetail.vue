@@ -1,6 +1,5 @@
 <template>
   <div class="job-wrapper">
-    <!-- Banner -->
     <div class="banner-section">
       <button class="btn-close" @click="$router.back()" > <p>⬅</p></button>
 
@@ -9,17 +8,22 @@
       </div>
     </div>
 
-    <!-- Konten Utama -->
     <div class="main-content">
-      <!-- Kolom Kiri -->
       <div class="left-column">
         <div class="image-left" v-if="loker">
-            <img :src="loker?.gambar_url || gibran" alt=""  class="clickable-image"
-             @click="openPreview(loker?.gambar_url || gibran)">
+          <div class="img-wrapper">
+            <p class="overlay-text">Klik gambar untuk memperbesar!</p>
+            <img 
+              :src="loker?.gambar_url || gibran" 
+              alt=""  
+              class="clickable-image"
+              @click="openPreview(loker?.gambar_url || gibran)"
+            >
+          </div>
         </div>
       </div>
 
-      <!-- Kolom Kanan -->
+
       <div class="right-column">
         <div class="detail-card">
           <h3>Detail Pekerjaan</h3>
@@ -61,10 +65,8 @@
             <p>{{ loker?.deskripsi }}</p>
           </div>
         </div>
-    </div>
+    </div>  
   </div>
-  <!-- === Fullscreen Image Viewer === -->
-<!-- === Fullscreen Image Modal === -->
 <div v-if="previewImage" class="image-modal" @click="closePreview">
   <img 
     :src="previewImage" 
@@ -127,7 +129,7 @@ export default {
         months: "Bulan",
       };
 
-      const label = unitMap[unit] || "Hari"; // fallback default
+      const label = unitMap[unit] || "Hari"; 
 
       return `${loker.deadline_value} ${label}`;
     },
@@ -146,10 +148,9 @@ export default {
       return new Intl.NumberFormat("id-ID").format(angka);
     },
 
-    // 🔥 Tambahan untuk format nomor WA (agar auto wa.me)
     formatWhatsapp(no) {
       if (!no) return "";
-      no = no.replace(/\D/g, ""); // buang karakter aneh
+      no = no.replace(/\D/g, ""); 
       if (no.startsWith("0")) return "62" + no.substring(1);
       return no;
     },
@@ -179,7 +180,6 @@ export default {
   align-items: center;
 }
 
-/* === Banner === */
 .banner-section {
   width: 100%;
   display: flex;
@@ -228,7 +228,6 @@ export default {
   word-break: break-word;
 }
 
-/* === Layout Utama === */
 .main-content {
   width: 80%;
   margin-top: 2rem;
@@ -247,7 +246,6 @@ export default {
   justify-content: start;
 }
 
-/* === Deskripsi === */
 .description {
   background: rgb(255, 255, 255);
   padding: 2rem;
@@ -279,7 +277,6 @@ export default {
   max-width: 100%;
 }
 
-/* scrollbar halus */
 .description-content::-webkit-scrollbar {
   width: 6px;
 }
@@ -288,7 +285,6 @@ export default {
   border-radius: 3px;
 }
 
-/* === Detail Card === */
 .detail-card {
   background: white;
   padding: 2rem;
@@ -324,7 +320,6 @@ export default {
   color: #164c5b;
 }
 
-/* === Tombol Lamar === */
 .apply-button {
   width: 100%;
   background: linear-gradient(to right, #4789b2, #60d2dc);
@@ -344,7 +339,6 @@ export default {
   transform: scale(1.02);
 }
 
-/* === Responsif === */
 @media (max-width: 1024px) {
   .main-content {
     grid-template-columns: 1fr;
@@ -371,12 +365,14 @@ export default {
 .image-left {
   margin-right: 0px;
   padding-right: 0px;
+  display: flex ;
+  z-index: 5;
 }
 
 .image-left img {
   width: 100vh;
   height: 45vh;
-  object-fit: cover;     /* tetap crop */
+  object-fit: cover;  
 
   border-radius: 10px;
   overflow: hidden;
@@ -434,6 +430,7 @@ export default {
   display: flex;
   justify-content: start;
   align-items: center;
+  margin-top: 15px;
 }
 
 .contact-info p {
@@ -470,7 +467,6 @@ export default {
   transform: scale(0.95);
 }
 
-/* === Fullscreen Image Modal === */
 .image-modal {
   position: fixed;
   top: 0;
@@ -490,7 +486,7 @@ export default {
   max-height: 95%;
   border-radius: 12px;
   box-shadow: 0 10px 35px rgba(0,0,0,0.5);
-  object-fit: contain; /* Jaga rasio asli */
+  object-fit: contain; 
   animation: zoomIn .18s ease;
 }
 
@@ -526,6 +522,132 @@ export default {
 .clickable-image {
   cursor: zoom-in;
 }
+
+.img-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.overlay-text {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  color: #fff;
+  background: rgba(0,0,0,0.3);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: bold;
+  z-index: 10;
+}
+
+.clickable-image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+@media (max-width: 1024px) {
+  .main-content {
+    width: 95%;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .main-content-bottom {
+    width: 95%;
+    margin-top: 1.5rem;
+    flex-direction: column;
+  }
+
+  .description {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .job-wrapper {
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  .banner {
+    margin-right: 0;
+    width: 100%;
+    box-sizing: border-box;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .btn-close {
+    margin-left: 8px;
+    width: 56px;
+    height: 56px;
+    font-size: 26px;
+  }
+
+  .main-content-bottom {
+    width: 100%;
+    max-width: 100%;
+    padding: 0 16px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .main-content {
+    width: 100%;
+    padding: 0 16px;
+    box-sizing: border-box;
+  }
+
+  .image-left img,
+  .img-wrapper,
+  .clickable-image {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    box-sizing: border-box;
+  }
+
+  .contact-info {
+    padding: 0 16px;
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  .contact {
+    flex-wrap: wrap;
+  }
+  
+  .btn-close {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-size: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .banner h2 {
+    font-size: 1rem;
+  }
+
+  .apply-button {
+    font-size: 1rem;
+    padding: 0.8rem;
+  }
+
+  .contact-number-phone,
+  .contact-name {
+    font-size: 13px;
+    padding: 10px;
+  }
+}
+
 
 
 </style>

@@ -5,7 +5,6 @@ import Navbar from "@/components/Navbar.vue"
 
 const route = useRoute()
 
-// Sembunyikan navbar di halaman login & register
 const showNavbar = computed(() => {
   const hiddenPages = ['/login', '/register']
   return !hiddenPages.includes(route.path)

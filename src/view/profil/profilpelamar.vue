@@ -2,33 +2,39 @@
   <div class="profil-page" v-if="profil">
     <div class="profil-card">
       <div class="header">
-        <div class="avatar" @click="profil.gambar_url && bukaFoto()">
-          <img
-            v-if="profil.gambar_url"
-            :src="profil.gambar_url"
-            alt="Foto Profil"
-          />
-          <div v-else class="avatar-placeholder">No Image</div>
-        </div>
+        <div class="left">
+          <div class="avatar" @click="profil.gambar_url && bukaFoto()">
+            <img
+              v-if="profil.gambar_url"
+              :src="profil.gambar_url"
+              alt="Foto Profil"
+            >
+            <div v-else class="avatar-placeholder">No Image</div>
+          </div>
 
-        <div class="user-info">
           <div class="identity">
             <div class="identity-left">
               <h1>{{ profil.nama }}</h1>
-            </div>  
-            <div class="identity-right">
-              <img :src=icwa alt="" >
-              <h1>{{ profil.whatsapp }}</h1>
             </div>
           </div>
-          
+        </div>
+
+        <div class="user-info">
+          <a
+            class="identity-right"
+            :href="`https://wa.me/${formatWhatsapp(profil.whatsapp)}`"
+            target="_blank"
+          >
+            <img :src="icwa" alt="WA Icon">
+            <h1>{{ profil.whatsapp }}</h1>
+          </a>
         </div>
       </div>
+
       <div class="description">
         <p class="desc">{{ profil.deskripsi || "Belum ada deskripsi." }}</p>
       </div>
 
-      <!-- Rating Section -->
       <div class="rating-box">
         <h3>⭐ Rating Pelamar</h3>
 
@@ -62,7 +68,6 @@
         </p>
       </div>
 
-      <!-- Riwayat -->
       <div v-if="profil.riwayat?.length" class="riwayat">
         <h3>📜 Riwayat Pekerjaan</h3>
         <ul>
@@ -76,19 +81,18 @@
     <p>Memuat data pelamar...</p>
   </div>
 
-    <!-- Modal Foto Profil -->
   <div v-if="showFotoModal" class="foto-modal" @click.self="tutupFoto">
     <div class="foto-modal-content">
       <button class="close-btn" @click="tutupFoto">✖</button>
       <img :src="profil.gambar_url" alt="Foto Profil Besar" />
     </div>
   </div>
-
 </template>
 
 <script>
 import api from "@/API/api";
 import icwa from "@/assets/ic_wa.png";
+
 export default {
   name: "ProfilPelamar",
   props: ["id"],
@@ -100,15 +104,24 @@ export default {
       isSubmitting: false,
       alreadyRated: false,
       showFotoModal: false,
-      icwa,
+      icwa
     };
   },
+
   async mounted() {
     await this.getProfil();
     await this.getRating();
     await this.checkAlreadyRated();
   },
+
   methods: {
+    formatWhatsapp(no) {
+      if (!no) return "";
+      no = no.replace(/\D/g, "");
+      if (no.startsWith("0")) return "62" + no.substring(1);
+      return no;
+    },
+
     async getProfil() {
       try {
         const res = await api.get(`/profil/${this.$route.params.id}`, {
@@ -119,6 +132,7 @@ export default {
         console.error("Error getProfil:", err);
       }
     },
+
     async getRating() {
       try {
         const res = await api.get(`/rating/user/${this.$route.params.id}`, {
@@ -132,6 +146,7 @@ export default {
         console.warn("Belum ada rating atau error getRating:", err);
       }
     },
+
     async checkAlreadyRated() {
       try {
         const res = await api.get(`/rating/check/${this.$route.params.id}`, {
@@ -142,11 +157,14 @@ export default {
         console.warn("Error check rating:", err);
       }
     },
+
     setRating(n) {
       this.userRating = n;
     },
+
     async submitRating() {
       if (!this.userRating) return;
+
       const lokerId = this.$route.query.loker_id;
       if (!lokerId) {
         alert("ID Loker tidak ditemukan! Tambahkan ?loker_id=... di URL");
@@ -154,6 +172,7 @@ export default {
       }
 
       this.isSubmitting = true;
+
       try {
         await api.post(
           "/rating",
@@ -166,19 +185,23 @@ export default {
             headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
           }
         );
-        alert("✅ Rating berhasil dikirim!");
+
+        alert("Rating berhasil dikirim!");
         this.userRating = 0;
         this.alreadyRated = true;
         await this.getRating();
+
       } catch (err) {
         alert(err.response?.data?.message || "Terjadi kesalahan saat mengirim rating.");
       } finally {
         this.isSubmitting = false;
       }
     },
+
     bukaFoto() {
-    this.showFotoModal = true;
+      this.showFotoModal = true;
     },
+
     tutupFoto() {
       this.showFotoModal = false;
     }
@@ -192,7 +215,7 @@ export default {
   justify-content: center;
   align-items: flex-start;
   padding: 2rem;
-  min-height: 100vh;  
+  min-height: 100vh;
   background: linear-gradient(135deg, #eef2ff, #f9fafb);
   font-family: "Poppins", sans-serif;
 }
@@ -209,11 +232,19 @@ export default {
 
 .header {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
   gap: 1.2rem;
   border-bottom: 1px solid #e5e7eb;
   padding-bottom: 1rem;
+  justify-content: space-between;
+}
+
+.left {
+  display: flex;
   align-items: center;
+  gap: 1rem;
+  flex: 1;
+  min-width: 240px;
 }
 
 .avatar img {
@@ -238,18 +269,23 @@ export default {
   color: #6b7280;
 }
 
-.user-info .name {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #1f2937;
-}
-.user-info .desc {
-  color: #4b5563;
-  font-size: 0.95rem;
-  margin-top: 0.25rem;
+.user-info {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 150px;
 }
 
-/* Rating */
+.description {
+  margin-top: 1rem;
+}
+
+.desc {
+  color: #4b5563;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
 .rating-box {
   text-align: center;
   margin-top: 1.8rem;
@@ -257,23 +293,27 @@ export default {
   padding: 1.2rem;
   border-radius: 12px;
 }
+
 .rating-box h3 {
   font-size: 1.1rem;
   font-weight: 600;
   color: #111827;
   margin-bottom: 0.5rem;
 }
+
 .rating-average {
   font-size: 0.95rem;
   color: #6b7280;
   margin-bottom: 0.5rem;
 }
+
 .average-number {
   color: #f59e0b;
   font-weight: 700;
   font-size: 1.3rem;
   margin-right: 5px;
 }
+
 .rating-empty {
   color: #9ca3af;
   font-size: 0.9rem;
@@ -286,20 +326,23 @@ export default {
   gap: 6px;
   margin: 0.5rem 0 0.8rem;
 }
+
 .star {
   font-size: 1.8rem;
   color: #d1d5db;
   cursor: pointer;
   transition: transform 0.2s, color 0.3s;
 }
+
 .star:hover {
   transform: scale(1.2);
   color: #facc15;
 }
+
 .star.active {
   color: #fbbf24;
-  animation: pop 0.3s ease;
 }
+
 .star.disabled {
   pointer-events: none;
   opacity: 0.4;
@@ -313,12 +356,12 @@ export default {
   padding: 10px 20px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.3s ease, transform 0.1s;
 }
+
 .btn-rate:hover {
-  background: linear-gradient(90deg, #4f46e5, #4338ca);
   transform: scale(1.03);
 }
+
 .btn-rate:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -330,59 +373,29 @@ export default {
   font-weight: 500;
 }
 
-/* Riwayat */
 .riwayat {
   margin-top: 1.8rem;
   background: #f3f4f6;
   border-radius: 12px;
   padding: 1.2rem;
 }
+
 .riwayat h3 {
   margin-bottom: 0.5rem;
   color: #1f2937;
   font-weight: 600;
 }
+
 .riwayat ul {
   padding-left: 1.2rem;
   color: #374151;
   font-size: 0.95rem;
 }
 
-/* Animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(15px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-@keyframes pop {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.3);
-  }
-  100% {  
-    transform: scale(1);
-  }
-}
-
-.loading {
-  text-align: center;
-  font-size: 1.1rem;
-  color: #6b7280;
-  padding: 3rem;
-}
-
-/* Modal Foto Profil */
 .foto-modal {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7); /* latar agak gelap */
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -391,72 +404,40 @@ export default {
 
 .foto-modal-content {
   position: relative;
-  width: 45vw;    /* sekitar setengah layar */
-  max-width: 500px; /* batas maksimum */
-  aspect-ratio: 1 / 1; /* tetap kotak */
+  width: 90vw;
+  max-width: 500px;
+  aspect-ratio: 1 / 1;
   overflow: hidden;
-  animation: zoomIn 0.3s ease;
   border-radius: 12px;
-  background: #000; /* optional, biar ada latar hitam */
+  background: #000;
 }
 
 .foto-modal-content img {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* penuh tapi sesuai kotak */
-  display: block;
+  object-fit: cover;
 }
 
-.foto-modal-content .close-btn {
+.close-btn {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 8px;
+  right: 8px;
   background: #ef4444;
   color: white;
   border: none;
   padding: 6px 10px;
   border-radius: 50%;
   cursor: pointer;
-  font-size: 1rem;
 }
-
-@keyframes zoomIn {
-  from {
-    transform: scale(0.7);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
 
 .identity {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;           /* 👉 teks panjang bisa turun */
-  gap: 1rem;
-
+  flex-direction: column;
+  gap: 0.3rem;
 }
 
-.identity-left,
-.identity-right {
-  display: flex;
-
-  border-radius: 6px;
-  color: white;
-  word-break: break-word;    /* 👉 pecah kata panjang */
-  overflow-wrap: break-word; 
-  align-items: center;
-  /* 👉 pastikan tetap wrap */
-}
-
-/* kiri */
 .identity-left {
-  flex: 1;                   /* 👉 fleksibel agar rapi */
-  min-width: 200px;
+  flex: 1;
 }
 
 .identity-left h1 {
@@ -464,29 +445,60 @@ export default {
   font-weight: 600;
   color: #000;
 }
-.identity-right h1 {
-  font-size: 15px;
-  font-weight: 600;
-  border-radius: 10px;
-  color: rgb(255, 255, 255);
-}
 
-/* kanan */
 .identity-right {
-  width: fit-content;
-  background: linear-gradient(135deg, #128C7E, #25D366);
   display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #128C7E, #25D366);
   padding: 1px 10px;
-  max-width: 200px;          /* 👉 biar tidak terlalu lebar */
-  min-width: 120px;
-  text-align: right;
-  justify-content: center;
+  border-radius: 10px;
+  text-decoration: none;
+  color: white;
 }
 
 .identity-right img {
-  width:20px;
+  width: 20px;
   height: 20px;
-  margin-right: 10px;
 }
 
+.identity-right h1 {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .profil-page {
+    padding: 1rem;
+  }
+
+  .profil-card {
+    padding: 1.3rem;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .user-info {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .identity-right {
+    width: auto;
+    max-width: 100%;
+  }
+
+  .avatar img,
+  .avatar-placeholder {
+    width: 80px;
+    height: 80px;
+  }
+
+  .identity-left h1 {
+    font-size: 20px;
+  }
+}
 </style>

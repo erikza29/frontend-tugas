@@ -15,12 +15,10 @@
             <h1>{{ profil.nama }}</h1>
           </div>  
           <div class="identity-right">
-            <img :src=icwa alt="" >
+            <img :src="icwa" alt="" >
             <h1>{{ profil.whatsapp }}</h1>
           </div>
         </div>
-        
-
         <div class="rating-wrapper">
           <div class="stars">
             <i
@@ -56,7 +54,6 @@
       </div>
     </div>
 
-    <!-- Modal Foto Profil -->
     <div v-if="showFotoModal" class="foto-modal" @click.self="closeFotoModal">
       <div class="foto-modal-content">
         <button class="close-btn" @click="closeFotoModal">✖</button>
@@ -118,10 +115,6 @@ export default {
 </script>
 
 <style scoped>
-
-/* ===========================
-   PROFILE PAGE WRAPPER
-=========================== */
 .profil-page {
   max-width: 900px;
   margin: 2rem auto;
@@ -132,18 +125,15 @@ export default {
   font-family: "Poppins", sans-serif;
 }
 
-/* ===========================
-   HEADER & PHOTO
-=========================== */
 .profil-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 2rem;
   padding-bottom: 1.5rem;
   border-bottom: 1px solid #e5e7eb;
 }
 
-/* Foto Profil */
 .profil-photo img {
   width: 130px;
   height: 130px;
@@ -158,7 +148,6 @@ export default {
   transform: scale(1.05);
 }
 
-/* Default Foto */
 .profil-default {
   width: 130px;
   height: 130px;
@@ -171,11 +160,9 @@ export default {
   font-size: 0.9rem;
 }
 
-/* ===========================
-   PROFILE INFO
-=========================== */
 .profil-info {
   flex: 1;
+  min-width: 200px;
 }
 
 .profil-info h1 {
@@ -184,12 +171,62 @@ export default {
   color: #111827;
 }
 
-/* Rating */
+.identity {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.identity-left,
+.identity-right {
+  display: flex;
+  align-items: center;
+  word-break: break-word;
+}
+
+.identity-left {
+  flex: 1;
+  min-width: 150px;
+}
+
+.identity-left h1 {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.identity-right {
+  width: fit-content;
+  background: linear-gradient(135deg, #128C7E, #25D366);
+  display: flex;
+  padding: 0.2rem 0.6rem;
+  max-width: 180px;
+  min-width: 120px;
+  justify-content: center;
+  text-align: right;
+  border-radius: 10px;
+}
+
+.identity-right img {
+  width: 20px;
+  height: 20px;
+  margin-right: 6px;
+}
+
+.identity-right h1 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: white;
+}
+
 .rating-wrapper {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   margin-top: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .stars {
@@ -208,7 +245,6 @@ export default {
   color: #4b5563;
 }
 
-/* Edit Button */
 .edit-btn {
   margin-top: 1rem;
   padding: 10px 16px;
@@ -226,9 +262,6 @@ export default {
   transform: scale(1.03);
 }
 
-/* ===========================
-   BODY & CARD
-=========================== */
 .profil-body {
   margin-top: 2rem;
   display: flex;
@@ -259,7 +292,6 @@ export default {
   color: #374151;
 }
 
-/* Loading */
 .loading {
   padding: 2rem;
   text-align: center;
@@ -267,9 +299,6 @@ export default {
   color: #6b7280;
 }
 
-/* ===========================
-   MODAL FOTO PROFIL
-=========================== */
 .foto-modal {
   position: fixed;
   inset: 0;
@@ -282,7 +311,7 @@ export default {
 
 .foto-modal-content {
   position: relative;
-  width: 45vw;
+  width: 80vw;
   max-width: 500px;
   aspect-ratio: 1 / 1;
   overflow: hidden;
@@ -295,10 +324,8 @@ export default {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
 }
 
-/* Tombol Close */
 .foto-modal-content .close-btn {
   position: absolute;
   top: 10px;
@@ -312,7 +339,6 @@ export default {
   cursor: pointer;
 }
 
-/* Animasi */
 @keyframes zoomIn {
   from {
     transform: scale(0.7);
@@ -324,61 +350,49 @@ export default {
   }
 }
 
-.identity {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;           /* 👉 teks panjang bisa turun */
-  gap: 1rem;
-
+@media (max-width: 768px) {
+  .profil-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1rem;
+  }
+  .profil-info {
+    width: 100%;
+  }
+  .identity {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .identity-right {
+    max-width: 100%;
+    padding: 0.3rem 0.8rem;
+  }
 }
 
-.identity-left,
-.identity-right {
-  display: flex;
-
-  border-radius: 6px;
-  color: white;
-  word-break: break-word;    /* 👉 pecah kata panjang */
-  overflow-wrap: break-word; 
-  align-items: center;
-  /* 👉 pastikan tetap wrap */
+@media (max-width: 480px) {
+  .profil-page {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+  .profil-photo img, .profil-default {
+    width: 110px;
+    height: 110px;
+  }
+  .identity-left h1 {
+    font-size: 1.4rem;
+  }
+  .identity-right h1 {
+    font-size: 0.8rem;
+  }
+  .edit-btn {
+    width: 100%;
+  }
+  .profil-card {
+    padding: 1rem;
+  }
+  .foto-modal-content {
+    width: 90vw;
+  }
 }
-
-/* kiri */
-.identity-left {
-  flex: 1;                   /* 👉 fleksibel agar rapi */
-  min-width: 200px;
-}
-
-.identity-left h1 {
-  font-size: 25px;
-  font-weight: 600;
-}
-.identity-right h1 {
-  font-size: 15px;
-  font-weight: 600;
-  border-radius: 10px;
-  color: rgb(255, 255, 255);
-}
-
-/* kanan */
-.identity-right {
-  width: fit-content;
-  background: linear-gradient(135deg, #128C7E, #25D366);
-  display: flex;
-  padding: 1px 10px;
-  max-width: 200px;          /* 👉 biar tidak terlalu lebar */
-  min-width: 120px;
-  text-align: right;
-  justify-content: center;
-}
-
-.identity-right img {
-  width:20px;
-  height: 20px;
-  margin-right: 10px;
-}
-
 </style>
-

@@ -1,40 +1,18 @@
 <template>
   <div class="register-wrapper">
-    <!-- KIRI -->
     <div class="left-section">
-  <img src="@/assets/gibran.png" alt="Poster kerja" class="hero-image" />
-  </div>
+      <img src="@/assets/gibran.png" alt="Poster kerja" class="hero-image" />
+    </div>
 
-
-    <!-- KANAN -->
     <div class="right-section">
       <div class="form-container">
         <h1>Selamat Datang</h1>
         <p>Nganggur? Cari kerja di Kerjayo aja!</p>
 
         <form @submit.prevent="handleRegister">
-          <input
-            type="text"
-            v-model="name"
-            placeholder="Nama Lengkap"
-            required
-            class="input-field"
-          />
-          <input
-            type="email"
-            v-model="email"
-            placeholder="Email"
-            required
-            class="input-field"
-          />
-          <input
-            type="password"
-            v-model="password"
-            placeholder="Password"
-            required
-            class="input-field"
-          />
-
+          <input type="text" v-model="name" placeholder="Nama Lengkap" required class="input-field" />
+          <input type="email" v-model="email" placeholder="Email" required class="input-field" />
+          <input type="password" v-model="password" placeholder="Password" required class="input-field" />
           <button type="submit" class="register-button">Daftar</button>
         </form>
 
@@ -81,12 +59,11 @@ async function handleRegister() {
   display: flex;
   height: 100vh;
   font-family: "Poppins", sans-serif;
+  background-color: #0c1b36;
 }
 
-/* BAGIAN KIRI */
 .left-section {
   flex: 1;
-  background-color: #0c1b36;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -97,10 +74,8 @@ async function handleRegister() {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
 }
 
-/* BAGIAN KANAN */
 .right-section {
   flex: 1;
   background: #ffffff;
@@ -111,8 +86,9 @@ async function handleRegister() {
 
 .form-container {
   width: 100%;
-  max-width: 350px;
+  max-width: 360px;
   text-align: center;
+  padding: 20px;
 }
 
 .form-container h1 {
@@ -129,7 +105,7 @@ async function handleRegister() {
 }
 
 .input-field {
-  width: 100%;
+  width: 90%;
   padding: 10px 15px;
   border: 1px solid #aaa;
   border-radius: 25px;
@@ -176,19 +152,50 @@ async function handleRegister() {
   text-decoration: underline;
 }
 
-/* RESPONSIVE */
 @media (max-width: 768px) {
   .register-wrapper {
+    position: relative;
     flex-direction: column;
+    height: 100vh;
   }
 
   .left-section {
-    height: 250px;
+    position: relative;
+    height: 100%;
+    width: 100%;
   }
 
   .hero-image {
+    width: 100%;
     height: 100%;
     object-fit: cover;
+    filter: brightness(0.45);
+  }
+
+  .right-section {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.3);
+  }
+
+  .form-container h1 {
+    color: white;
+  }
+
+  .form-container p {
+    color: #f0f0f0;
+  }
+
+  .input-field {
+    width: 90%;
+    background: rgba(255, 255, 255, 0.85);
   }
 }
 </style>

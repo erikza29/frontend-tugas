@@ -1,7 +1,6 @@
 ```vue
 <template>
   <div class="job-wrapper">
-    <!-- Hero -->
     <div class="job-hero">
       <button class="btn-back" @click="$router.back()">⬅ Kembali</button>
       <div class="hero-content">
@@ -13,15 +12,12 @@
       </div>
     </div>
 
-    <!-- Konten -->
     <div class="job-container">
-      <!-- Deskripsi -->
       <div class="job-left glass-card">
         <h2>Deskripsi Pekerjaan</h2>
         <p>{{ loker?.deskripsi }}</p>
       </div>
 
-      <!-- Info ringkas -->
       <div class="job-right glass-card">
         <h3>Detail Pekerjaan</h3>
         <ul>
@@ -85,7 +81,6 @@ export default {
   padding-bottom: 50px;
 }
 
-/* Hero */
 .job-hero {
   background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05));
   backdrop-filter: blur(12px);
@@ -135,7 +130,6 @@ export default {
   margin-top: 6px;
 }
 
-/* Container */
 .job-container {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -207,7 +201,6 @@ export default {
   transform: translateY(-3px) scale(1.03);
 }
 
-/* Animasi */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }

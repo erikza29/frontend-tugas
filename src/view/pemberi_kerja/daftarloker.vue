@@ -1,7 +1,6 @@
 <template>
   <div class="loker-container">
 
-    <!-- === Toast Notification (Added) === -->
     <transition name="toast-pop">
       <div v-if="actionToast.show" :class="['action-toast', actionToast.type]">
         <span>{{ actionToast.message }}</span>
@@ -10,7 +9,6 @@
 
 
 
-    <!-- === Popup Sambutan === -->
     <transition name="popup-zoom">
       <div v-if="showPopup" class="popup-welcome">
         <span>👋 Apa kabar boss 😎</span>
@@ -20,7 +18,6 @@
 
     <h1>Daftar Lowongan Kerja</h1>
 
-    <!-- 🔍 Tombol tambah dan search -->
     <div class="top-bar">
       <input
         v-model="search"
@@ -34,16 +31,13 @@
     <div v-if="loading" class="loading">Memuat data...</div>
     <div v-if="error" class="error">{{ error }}</div>
 
-    <!-- 🧩 Grid Loker -->
     <div v-if="!loading && filteredLoker.length > 0" class="loker-list">
       <div v-for="l in filteredLoker" :key="l.id" class="loker-card">
 
-        <!-- 🖼️ Gambar -->
         <div class="card-image">
           <img :src="l.gambar_url ? l.gambar_url : gibran" class="job-image" />
         </div>
 
-        <!-- 🧾 Info utama -->
         <div class="card-content">
           <h2 class="job-title">{{ l.judul }}</h2>
           <p class="desc">{{ l.deskripsi }}</p>
@@ -55,7 +49,6 @@
           </div>
         </div>
 
-        <!-- ⚙️ Tombol aksi -->
         <div class="action-buttons">
           <button @click="editLoker(l.id)" class="btn-edit">Edit</button>
           <button @click="hapusLoker(l.id)" class="btn-delete">Hapus</button>
@@ -68,7 +61,6 @@
       Belum ada lowongan kerja.
     </p>
 
-    <!-- === Modal Pelamar === -->
     <div v-if="showModal" class="modal">
       <div class="modal-content">
         <h3>Pelamar Lowongan: {{ modalLoker.judul }}</h3>
@@ -87,14 +79,16 @@
             }"
           >
             <div class="pelamar-header">
-              <div class="avatar">{{ p.user.name.charAt(0).toUpperCase() }}</div>
-              <div class="info">
-                <p class="nama">{{ p.user.name }}</p>
-                <p class="email">{{ p.user.email }}</p>
+              <div class="worker">
+                <div class="avatar">{{ p.user.name.charAt(0).toUpperCase() }}</div>
+                <div class="info">
+                  <p class="nama">{{ p.user.name }}</p>
+                  <p class="email">{{ p.user.email }}</p>
+                </div>
               </div>
 
               <span
-                v-if="p.status"
+                v-if="p.status === 'diterima' || p.status === 'ditolak'"
                 class="status-label"
                 :class="{
                   diterima: p.status === 'diterima',
@@ -103,6 +97,7 @@
               >
                 {{ p.status === 'diterima' ? '✔ Diterima' : '✖ Ditolak' }}
               </span>
+
             </div>
 
             <div class="actions">
@@ -154,10 +149,9 @@ export default {
       gibran,
       baseURL: import.meta.env.VITE_API_URL,
 
-      // === Toast State ===
       actionToast: {
         show: false,
-        type: "",       // success | warning | danger | purple
+        type: "",     
         message: "",
       },
     };
@@ -185,7 +179,6 @@ export default {
         return "Tidak ada deadline";
       }
 
-      // Format text
       const typeLabel = {
         jam: "jam",
         hari: "hari",
@@ -195,7 +188,6 @@ export default {
       return `${l.deadline_value} ${typeLabel[l.deadline_unit]}`;
     },
 
-    // === POPUP TENGAH ATAS ===
     triggerPopup(msg) {
       this.popupMessage = msg;
       this.showPopup = true;
@@ -204,9 +196,8 @@ export default {
       }, 2500);
     },
 
-    // === TOAST BAWAH KANAN ===
     triggerToast(type, msg) {
-      this.actionToast.type = type;   // success | warning | danger | purple
+      this.actionToast.type = type;   
       this.actionToast.message = msg;
       this.actionToast.show = true;
 
@@ -215,9 +206,6 @@ export default {
       }, 3000);
     },
 
-    // ============================
-    //         API LOGIC
-    // ============================
 
     async getLoker() {
       this.loading = true;
@@ -364,7 +352,6 @@ export default {
 
 
 <style scoped>
-/* POPUP TENGAH ATAS */
 .popup-welcome {
   position: fixed;
   top: 20px;
@@ -382,13 +369,11 @@ export default {
   animation-fill-mode: forwards;
 }
 
-/* Animasi muncul */
 @keyframes popupFade {
   from { opacity: 0; transform: translateX(-50%) scale(0.8); }
   to   { opacity: 1; transform: translateX(-50%) scale(1); }
 }
 
-/* Gerakan mengapung */
 @keyframes popupFloat {
   0%, 100% { transform: translateX(-50%) translateY(0); }
   50%      { transform: translateX(-50%) translateY(4px); }
@@ -396,7 +381,6 @@ export default {
 
 
 
-/* TOAST POJOK BAWAH */
 .action-toast {
   position: fixed;
   bottom: 22px;
@@ -411,56 +395,45 @@ export default {
   z-index: 9999;
 }
 
-/* Animasi slide dari kanan */
 @keyframes toastSlide {
   from { transform: translateX(50px); opacity: 0; }
   to   { transform: translateX(0); opacity: 1; }
 }
 
-/* GRADIENT SOLID + glow sesuai event */
 
-/* CREATE = hijau */
 .action-toast.success {
   background: linear-gradient(135deg, #00c853, #64dd17);
   box-shadow: 0 0 16px rgba(0, 255, 90, 0.55);
 }
 
-/* UPDATE = kuning */
 .action-toast.warning {
   background: linear-gradient(135deg, #ffca28, #ffb300);
   box-shadow: 0 0 16px rgba(255, 215, 0, 0.55);
 }
 
-/* DELETE = merah */
 .action-toast.danger {
   background: linear-gradient(135deg, #ff1744, #d50000);
   box-shadow: 0 0 16px rgba(255, 40, 40, 0.55);
 }
 
-/* UBAH STATUS = ungu */
 .action-toast.purple {
   background: linear-gradient(135deg, #8e24aa, #d500f9);
   box-shadow: 0 0 16px rgba(200, 0, 255, 0.55);
 }
 
-
-/* ================================ */
-/* === CODE AWAL (Tidak diubah) === */
-/* ================================ */
-
-/* === Grid Loker === */
-.loker-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
-  gap: 1.8rem;
-}
-
 .loker-container {
   max-width: 85%;
-  justify-content: center;
+  width: 100%;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
+}
+
+.loker-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.8rem;
+  width: 100%;
 }
 
 .loker-card {
@@ -472,7 +445,10 @@ export default {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+
 }
+
+
 
 .loker-card:hover {
   transform: translateY(-6px);
@@ -614,7 +590,6 @@ export default {
   box-shadow: 0 5px 15px rgba(6, 182, 212, 0.4);
 }
 
-/* Modal */
 .modal {
   position: fixed;
   inset: 0;
@@ -647,7 +622,6 @@ export default {
   cursor: pointer;
 }
 
-/* Pelamar */
 .pelamar-card {
   background: linear-gradient(to bottom, #e0f7fa, #ffffff);
   border-radius: 0.8rem;
@@ -684,6 +658,7 @@ export default {
   color:white;
   font-weight: bold;
   font-size: 1.1rem;
+  margin-right: 15px;
 }
 
 .status-label {
@@ -741,5 +716,15 @@ export default {
   cursor: not-allowed;
 }
 
+.worker {
+  display: flex;
+  align-items: center;
+}
 
+@media (max-width: 480px) {
+  .loker-container { max-width: 95%; }
+  .loker-list { grid-template-columns: 1fr; }
+  .top-bar { flex-direction: column; align-items: stretch; }
+  .btn-add { width: 100%; }
+}
 </style>

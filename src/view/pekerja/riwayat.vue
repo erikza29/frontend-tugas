@@ -1,6 +1,5 @@
 <template>
   <div class="riwayat-container">
-    <!-- ===== Header & Controls ===== -->
     <div class="controls">
       <h2 class="title">Riwayat Pekerjaan</h2>
 
@@ -18,7 +17,6 @@
       </div>
     </div>
 
-    <!-- ===== Loading Skeleton ===== -->
     <div v-if="loading" class="skeleton-list" aria-busy="true">
       <div class="skeleton" v-for="n in 3" :key="n">
         <div class="skeleton-left"></div>
@@ -26,7 +24,6 @@
       </div>
     </div>
 
-    <!-- ===== Content ===== -->
     <div v-else>
       <div v-if="riwayat.length === 0" class="no-data">Belum ada riwayat.</div>
 
@@ -41,6 +38,11 @@
             <p class="judul">{{ getTitle(item) }}</p>
             <p class="tanggal">{{ formatTanggal(item.tanggal) }}</p>
             <small class="tipe" v-if="item.type">Tipe: {{ item.type }}</small>
+
+            <!-- Countdown (hanya tampil jika status aktif dan ada deadline_end) -->
+            <p v-if="item.status === 'aktif' && getCountdownText(item)" class="countdown">
+              Deadline : {{ getCountdownText(item) }}
+            </p>
           </div>
 
           <div class="right-area">
@@ -63,7 +65,6 @@
         </div>
       </div>
 
-      <!-- ===== Pagination ===== -->
       <div class="pagination" v-if="pageCount > 1">
         <button :disabled="page === 1" @click="page--">Prev</button>
         <span>Halaman {{ page }} / {{ pageCount }}</span>
@@ -71,7 +72,6 @@
       </div>
     </div>
 
-    <!-- ===== Modal Konfirmasi ===== -->
     <div v-if="confirmModal.show" class="modal" role="dialog" aria-modal="true">
       <div class="modal-content">
         <h3>Konfirmasi</h3>
@@ -79,6 +79,13 @@
           Anda yakin ingin menandai pekerjaan
           "<strong>{{ getTitle(confirmModal.item) }}</strong>" sebagai selesai?
         </p>
+
+
+        <!-- Countdown di modal (jika tersedia) -->
+        <p v-if="confirmModal.item && getCountdownText(confirmModal.item)" class="countdown modal-countdown">
+          {{ getCountdownText(confirmModal.item) }}
+        </p>
+
         <div class="modal-actions">
           <button @click="confirmModal.show = false">Batal</button>
           <button class="danger" @click="completeWork(confirmModal.item)">Ya, selesai</button>
@@ -86,13 +93,12 @@
       </div>
     </div>
 
-    <!-- ===== Toast ===== -->
     <div v-if="toast.show" :class="['toast', toast.type]">{{ toast.message }}</div>
   </div>
 </template>
 
 <script>
-import api from "@/API/api";
+import api from "@/API/api"; // ganti sesuai path api-mu
 
 export default {
   name: "Riwayat",
@@ -105,6 +111,11 @@ export default {
       perPage: 6,
       confirmModal: { show: false, item: null },
       toast: { show: false, message: "", type: "" },
+      countdownText: '',
+
+      // untuk ticking update countdown
+      nowTs: Date.now(),
+      _countdownInterval: null,
     };
   },
   computed: {
@@ -139,7 +150,7 @@ export default {
         const gabungan = raw.map((it, idx) => {
           const lokerObj =
             typeof it.loker === "object"
-              ? { judul: it.loker.judul || it.loker.name || it.loker.title }
+              ? { ...it.loker, judul: it.loker.judul || it.loker.name || it.loker.title }
               : { judul: it.loker || it.judul || it.loker_judul };
 
           const normalizedStatus = (() => {
@@ -208,15 +219,92 @@ export default {
     confirmComplete(i) {
       this.confirmModal = { show: true, item: i };
     },
+
+    /**
+     * Parse string tanggal yang kemungkinan format "YYYY-MM-DD HH:mm:ss" atau ISO.
+     * Pastikan diparse ke Date local dengan aman.
+     */
+    parseDateLocal(dateStr) {
+      if (!dateStr) return null;
+      // jika sudah mengandung 'T' (ISO), parse langsung
+      if (dateStr.includes("T")) {
+        const d = new Date(dateStr);
+        return isNaN(d) ? null : d;
+      }
+      // ubah "YYYY-MM-DD HH:MM:SS" -> "YYYY-MM-DDTHH:MM:SS"
+      const safe = dateStr.replace(" ", "T");
+      const d = new Date(safe);
+      if (!isNaN(d)) return d;
+      // fallback: try split manual (UTC assumption)
+      const parts = dateStr.split(/[- :T]/).map((p) => parseInt(p, 10));
+      if (parts.length >= 6) {
+        // year, month, day, hour, min, sec
+        const [y, m, day, hh, mm, ss] = parts;
+        return new Date(y, m - 1, day, hh, mm, ss);
+      }
+      return null;
+    },
+
+    /**
+     * Mengembalikan teks countdown (jam) atau null jika tidak ada deadline.
+     * Format: "12 jam lagi" atau "Sudah lewat".
+     */
+    getCountdownText(item) {
+      // prioritas: raw.loker.deadline_end -> raw.deadline_end -> item.loker.deadline_end
+      const raw = item?.raw || {};
+      const candidate =
+        raw?.loker?.deadline_end || raw?.deadline_end || item?.loker?.deadline_end || raw?.loker_deadline_end || null;
+
+      if (!candidate) return null;
+
+      const d = this.parseDateLocal(candidate);
+      if (!d) return null;
+
+      // gunakan nowTs (dibuat supaya reactive dan diperbarui setiap interval)
+      const now = new Date(this.nowTs);
+      const diffMs = d - now;
+
+      if (diffMs <= 0) return "Sudah lewat";
+
+      const hours = Math.floor(diffMs / (1000 * 60 * 60));
+      return `${hours} jam lagi`;
+    },
+
+    updateCountdown() {
+      if (!this.item?.loker?.deadline_end) {
+        this.countdownText = '-';
+        return;
+      }
+
+      const now = new Date();
+      const deadline = new Date(this.item.loker.deadline_end);
+
+      const diff = deadline - now;
+
+      if (diff <= 0) {
+        this.countdownText = '0 jam';
+        return;
+      }
+
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+      this.countdownText = `${hours} jam ${minutes} menit`;
+    },
+
     async completeWork(i) {
       if (!i?.id) return;
       this.confirmModal.show = false;
       const prev = i.status;
       i.status = "selesai";
       try {
-        const res = await api.put(`/pekerjaan/${i.id}/status/selesai`, {}, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
+        const res = await api.put(
+          `/pekerjaan/${i.id}/status/selesai`,
+          {},
+          {
+            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          }
+        );
         if (res.data?.success) {
           this.showToast("Pekerjaan berhasil diselesaikan.", "success");
           this.getRiwayat();
@@ -224,8 +312,9 @@ export default {
           i.status = prev;
           this.showToast("Gagal menandai selesai.", "error");
         }
-      } catch {
+      } catch (e) {
         i.status = prev;
+        console.error(e);
         this.showToast("Gagal terhubung ke server.", "error");
       }
     },
@@ -235,7 +324,20 @@ export default {
     },
   },
   mounted() {
+    this.updateCountdown();
+    setInterval(this.updateCountdown, 1000); // update tiap detik
     this.getRiwayat();
+
+    // update nowTs setiap 60 detik supaya countdown di UI ter-update.
+    this._countdownInterval = setInterval(() => {
+      this.nowTs = Date.now();
+    }, 60 * 1000); // 60 detik
+
+    // juga trigger update tepat saat mount (agar tampilan langsung benar)
+    this.nowTs = Date.now();
+  },
+  beforeDestroy() {
+    if (this._countdownInterval) clearInterval(this._countdownInterval);
   },
 };
 </script>
@@ -251,7 +353,6 @@ export default {
   font-family: "Poppins", sans-serif;
 }
 
-/* Header */
 .controls {
   display: flex;
   justify-content: space-between;
@@ -281,7 +382,6 @@ select:focus {
   color: #6b7280;
 }
 
-/* Cards */
 .list {
   display: flex;
   flex-direction: column;
@@ -315,7 +415,19 @@ select:focus {
   color: #9ca3af;
 }
 
-/* Status Badge */
+/* countdown style */
+.countdown {
+  color: #ef4444;
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+.modal-countdown {
+  margin-top: 12px;
+  font-size: 14px;
+}
+
+/* status badges */
 .status {
   padding: 6px 14px;
   border-radius: 30px;
@@ -331,7 +443,6 @@ select:focus {
 .status.selesai { background: #14b8a6; }
 .status.dibatalkan { background: #9ca3af; }
 
-/* Actions */
 .actions {
   display: flex;
   flex-direction: column;
@@ -355,7 +466,6 @@ select:focus {
   box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
 }
 
-/* Pagination */
 .pagination {
   margin-top: 26px;
   display: flex;
@@ -375,7 +485,6 @@ select:focus {
   color: white;
 }
 
-/* Modal */
 .modal {
   position: fixed;
   inset: 0;
@@ -410,7 +519,6 @@ select:focus {
   color: #fff;
 }
 
-/* Toast */
 .toast {
   position: fixed;
   right: 20px;

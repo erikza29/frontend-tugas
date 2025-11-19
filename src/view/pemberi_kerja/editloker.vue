@@ -24,17 +24,31 @@
           <input v-model="form.gaji" type="number" required />
         </div>
 
-        <div class="form-group">
-          <label>Deadline</label>
-          <input v-model="form.deadline" type="date" required />
+        <label>Deadline</label>
+        <div class="input-deadline">
+          <div class="form-group-left">
+            <input
+              v-model="form.deadline_value"
+              type="number"
+              min="1"
+              required
+              placeholder="contoh: 24"
+            />
+          </div>
+
+          <div class="form-group-right">
+            <select v-model="form.deadline_unit" required>
+              <option disabled value="">Jenis</option>
+              <option value="jam">Jam</option>
+              <option value="hari">Hari</option>
+            </select>
+          </div>
         </div>
 
-        <!-- Upload gambar -->
         <div class="form-group">
           <label>Gambar (Opsional)</label>
           <input type="file" accept="image/*" @change="onImageChange" />
 
-          <!-- Preview: gunakan gambar_url dari API bila ada, atau preview file baru -->
           <div v-if="previewUrl" class="preview-container">
             <p>Preview gambar:</p>
             <img :src="previewUrl" class="preview-image" />
@@ -74,12 +88,14 @@ export default {
         deskripsi: "",
         lokasi: "",
         gaji: "",
-        deadline: "",
-        gambar: null,       // nama file di DB
-        gambar_url: null,   // URL lengkap dari API
+        deadline_unit: "",
+        deadline_value: "",
+        gambar: null,
+        gambar_url: null,
       },
-      newGambarFile: null,   // File yang dipilih user (untuk upload)
-      previewUrl: null,      // Object URL untuk preview file baru
+
+      newGambarFile: null,   
+      previewUrl: null,      
       loading: false,
       loaded: false,
       error: "",
@@ -91,7 +107,6 @@ export default {
   },
 
   beforeUnmount() {
-    // revoke object URL kalau ada
     if (this.previewUrl) URL.revokeObjectURL(this.previewUrl);
   },
 
@@ -107,9 +122,9 @@ export default {
           this.form.deskripsi = data.deskripsi;
           this.form.lokasi = data.lokasi;
           this.form.gaji = data.gaji;
-          this.form.deadline = data.deadline;
+          this.form.deadline_unit = data.deadline_unit;
+          this.form.deadline_value = data.deadline_value;
           this.form.gambar = data.gambar ?? null;
-          // jika backend sudah mengirim gambar_url gunakan itu
           this.form.gambar_url = data.gambar_url ?? null;
           this.loaded = true;
         } else {
@@ -124,7 +139,6 @@ export default {
     onImageChange(e) {
       const file = e.target.files[0];
       if (!file) return;
-      // revoke previous preview jika ada
       if (this.previewUrl) URL.revokeObjectURL(this.previewUrl);
 
       this.newGambarFile = file;
@@ -138,21 +152,18 @@ export default {
       try {
         const id = this.$route.params.id;
 
-        // siapkan FormData
         const fd = new FormData();
         fd.append("judul", this.form.judul);
         fd.append("deskripsi", this.form.deskripsi);
         fd.append("lokasi", this.form.lokasi);
         fd.append("gaji", this.form.gaji);
-        fd.append("deadline", this.form.deadline);
+        fd.append("deadline_unit", this.form.deadline_unit);
+        fd.append("deadline_value", this.form.deadline_value);
 
-        // PENTING: backend expect field name 'gambar'
         if (this.newGambarFile) {
           fd.append("gambar", this.newGambarFile);
         }
 
-        // override method -> PUT (karena multipart)
-        // gunakan query ?_method=PUT agar controller menerima sebagai PUT
         const res = await api.post(`/loker/${id}?_method=PUT`, fd, {
           headers: { "Content-Type": "multipart/form-data" },
         });
@@ -165,7 +176,6 @@ export default {
         }
       } catch (err) {
         console.error("updateLoker error:", err);
-        // handle validation error 422
         if (err.response?.status === 422) {
           const messages = err.response.data.errors || err.response.data.message;
           this.error = typeof messages === "string" ? messages : JSON.stringify(messages);
@@ -303,4 +313,46 @@ button {
   text-align: center;
   color: #555;
 }
+
+.input-deadline {
+  display: flex;
+
+  width: 100%;
+  margin-bottom: 18px;
+}
+
+.form-group-left {
+  width: 60%;
+  margin-right: 30px;}
+
+.form-group-right {
+  width: 30%;
+}
+
+.form-group-left input,
+.form-group-right select {
+  width: 100%;
+}
+
+
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #c9d3e1;
+  border-radius: 10px;
+  font-size: 15px;
+  outline: none;
+  transition: all 0.2s ease;
+  background-color: #f9fbff;
+}
+
+select:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.15);
+  background-color: #fff;
+}
+
+
 </style>

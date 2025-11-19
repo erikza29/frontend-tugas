@@ -1,11 +1,10 @@
 <template>
   <nav class="navbar" v-if="showNavbar">
     <div class="left">
-      <div class="logo">JF</div>
-      <div class="app-name">JobFinder</div>
+      <div class="logo">WW</div>
+      <div class="app-name">WorkingWork</div>
     </div>
 
-    <!-- Hamburger for Mobile -->
     <div class="menu-toggle" @click="isMenuOpen = !isMenuOpen">
       <span></span><span></span><span></span>
     </div>
@@ -15,21 +14,16 @@
         <template v-if="role === 'pemberi_kerja'">
           <li><router-link to="/daftarloker" @click="isMenuOpen = false">Beranda</router-link></li>
         </template>
-
         <template v-else-if="role === 'pekerja'">
           <li><router-link to="/lokerlist" @click="isMenuOpen = false">Beranda</router-link></li>
           <li><router-link to="/riwayat" @click="isMenuOpen = false">Riwayat</router-link></li>
         </template>
       </ul>
 
-      <router-link to="/pilih_role" class="switch-role" @click="isMenuOpen = false">
-        Ganti Role
-      </router-link>
-
+      <router-link to="/pilih_role" class="switch-role" @click="isMenuOpen = false">Ganti Role</router-link>
       <router-link to="/profil" class="profile" @click="isMenuOpen = false">
         <img :src="avatarUrl" alt="Avatar" />
       </router-link>
-
       <button class="logout-btn" @click="logout">Logout</button>
     </div>
   </nav>
@@ -76,6 +70,7 @@ const logout = () => {
 const updateRole = () => {
   role.value = (localStorage.getItem("role") || "").toLowerCase().trim();
 };
+
 const updateAvatar = () => {
   avatarUrl.value = localStorage.getItem("avatar_url") || "https://i.pravatar.cc/150?img=3";
 };
@@ -106,7 +101,7 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(90deg, #1E3A8A 0%, #2563EB 50%, #60A5FA 100%);
+  background: linear-gradient(90deg, #0C1B44, #60D2DC);
   padding: 14px 48px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   font-family: 'Poppins', sans-serif;
@@ -117,7 +112,6 @@ onBeforeUnmount(() => {
   transition: all 0.3s ease;
 }
 
-/* Logo */
 .left {
   display: flex;
   align-items: center;
@@ -144,7 +138,6 @@ onBeforeUnmount(() => {
   letter-spacing: 0.5px;
 }
 
-/* Right Side */
 .right {
   display: flex;
   align-items: center;
@@ -167,24 +160,26 @@ onBeforeUnmount(() => {
   transition: all 0.2s ease;
   position: relative;
 }
+
 .nav-links a:hover {
   color: #fff;
 }
+
 .nav-links a::after {
-  content: "";
+  content: '';
   position: absolute;
   left: 0;
   bottom: -4px;
-  width: 0%;
+  width: 0;
   height: 2px;
   background: #fff;
   transition: width 0.3s ease;
 }
+
 .nav-links a:hover::after {
   width: 100%;
 }
 
-/* Switch Role */
 .switch-role {
   font-size: 0.9rem;
   font-weight: 600;
@@ -196,12 +191,12 @@ onBeforeUnmount(() => {
   text-decoration: none;
   transition: all 0.2s ease;
 }
+
 .switch-role:hover {
   background-color: #E0E7FF;
   color: #111827;
 }
 
-/* Avatar/Profile */
 .profile {
   width: 44px;
   height: 44px;
@@ -212,16 +207,17 @@ onBeforeUnmount(() => {
   transition: border-color 0.2s ease;
   display: block;
 }
+
 .profile:hover {
   border-color: #fff;
 }
+
 .profile img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-/* Logout */
 .logout-btn {
   background: #EF4444;
   color: white;
@@ -232,17 +228,18 @@ onBeforeUnmount(() => {
   font-weight: 600;
   transition: background 0.2s ease;
 }
+
 .logout-btn:hover {
   background: #DC2626;
 }
 
-/* Hamburger Button */
 .menu-toggle {
   display: none;
   flex-direction: column;
   cursor: pointer;
   gap: 5px;
 }
+
 .menu-toggle span {
   width: 26px;
   height: 3px;
@@ -250,18 +247,19 @@ onBeforeUnmount(() => {
   border-radius: 4px;
 }
 
-/* Mobile Responsive */
 @media (max-width: 768px) {
+  .navbar {
+    padding: 14px 20px;
+  }
   .menu-toggle {
     display: flex;
   }
-
   .right {
     position: absolute;
-    top: 70px;
+    top: 64px;
     right: 0;
     width: 240px;
-    background: linear-gradient(180deg, #1E3A8A 0%, #2563EB 80%);
+    background: linear-gradient(180deg, #1E3A8A, #2563EB 80%);
     flex-direction: column;
     align-items: flex-start;
     padding: 20px;
@@ -272,25 +270,25 @@ onBeforeUnmount(() => {
     opacity: 0;
     transition: all 0.3s ease;
   }
-
   .right.open {
     transform: translateY(0);
     opacity: 1;
   }
-
   .nav-links {
     flex-direction: column;
     gap: 10px;
     width: 100%;
   }
-
   .logout-btn {
     width: 100%;
   }
-
   .switch-role {
     width: 100%;
     text-align: center;
+  }
+  .profile {
+    width: 36px;
+    height: 36px;
   }
 }
 </style>

@@ -1,11 +1,10 @@
 <template>
   <div class="login-wrapper">
-    <!-- BAGIAN KIRI -->
-    <div class="left-section">
-  <img src="@/assets/gibran.png" alt="Poster kerja" class="hero-image" />
-  </div>
 
-    <!-- BAGIAN KANAN -->
+    <div class="left-section">
+      <img src="@/assets/gibran.png" alt="Poster kerja" class="hero-image" />
+    </div>
+
     <div class="right-section">
       <div class="form-container">
         <h1>Login ke Kerjayo</h1>
@@ -47,6 +46,7 @@
         </div>
       </div>
     </div>
+
   </div>
 </template>
 
@@ -66,8 +66,6 @@ async function handleLogin() {
       password: password.value,
     });
 
-    console.log("Login response:", res.data);
-
     const token = res.data.data.token;
     const role = res.data.data.role;
     const userId = res.data.data.user.id;
@@ -77,12 +75,10 @@ async function handleLogin() {
       return;
     }
 
-    // ✅ Simpan token, role, dan user_id ke localStorage
     localStorage.setItem("token", token);
     localStorage.setItem("role", role);
     localStorage.setItem("user_id", userId);
 
-    // ✅ Ambil profil user agar avatar langsung muncul di navbar
     try {
       const profilRes = await api.get("/profil", {
         headers: { Authorization: `Bearer ${token}` },
@@ -94,14 +90,12 @@ async function handleLogin() {
 
       localStorage.setItem("avatar_url", avatar);
 
-      // ✅ Trigger event ke navbar (biar langsung update avatar & role)
       window.dispatchEvent(new Event("avatar-changed"));
       window.dispatchEvent(new Event("role-changed"));
     } catch (err) {
       console.warn("Gagal ambil profil:", err);
     }
 
-    // ✅ Arahkan user sesuai role
     if (role === "pekerja") {
       router.push("/lokerlist");
     } else if (role === "pemberi_kerja") {
@@ -110,7 +104,6 @@ async function handleLogin() {
       router.push("/pilih_role");
     }
   } catch (err) {
-    console.error("Login error:", err.response?.data || err);
     alert(err.response?.data?.message || "Login gagal");
   }
 }
@@ -124,9 +117,9 @@ async function handleLogin() {
   display: flex;
   height: 100vh;
   font-family: "Poppins", sans-serif;
+  background-color: #0c1b36;
 }
 
-/* BAGIAN KIRI */
 .left-section {
   flex: 1;
   background-color: #0c1b36;
@@ -140,16 +133,15 @@ async function handleLogin() {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
 }
 
-/* BAGIAN KANAN */
 .right-section {
   flex: 1;
   background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 20px;
 }
 
 .form-container {
@@ -171,7 +163,6 @@ async function handleLogin() {
   margin-bottom: 25px;
 }
 
-/* INPUT */
 .input-group {
   position: relative;
   margin-bottom: 15px;
@@ -186,13 +177,13 @@ async function handleLogin() {
 }
 
 .input-field {
-  width: 100%;
+  width: 85%;
   padding: 10px 15px 10px 40px;
   border: 1px solid #aaa;
   border-radius: 25px;
   outline: none;
   font-size: 14px;
-  transition: all 0.2s ease;
+  transition: all 0.2s;
 }
 
 .input-field:focus {
@@ -200,7 +191,6 @@ async function handleLogin() {
   box-shadow: 0 0 0 2px rgba(0, 191, 255, 0.2);
 }
 
-/* BUTTON */
 .login-button {
   width: 100%;
   background: linear-gradient(to bottom, #67e1ff, #00bfff);
@@ -218,7 +208,6 @@ async function handleLogin() {
   transform: scale(1.02);
 }
 
-/* LINK REGISTER */
 .register-link {
   margin-top: 20px;
   font-size: 13px;
@@ -235,19 +224,92 @@ async function handleLogin() {
   text-decoration: underline;
 }
 
-/* RESPONSIVE */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .login-wrapper {
     flex-direction: column;
+    height: auto;
   }
 
   .left-section {
-    height: 250px;
+    height: 230px;
   }
 
   .hero-image {
     height: 100%;
-    object-fit: cover;
   }
+
+  .right-section {
+    padding: 30px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .form-container h1 {
+    font-size: 22px;
+  }
+
+  .form-container p {
+    font-size: 12px;
+  }
+
+  .input-field {
+    font-size: 13px;
+    padding: 10px 15px 10px 40px;
+  }
+
+  .login-button {
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  @media (max-width: 768px) {
+  .login-wrapper {
+    position: relative;
+    height: 100vh;
+    flex-direction: column;
+  }
+
+  .left-section {
+    position: relative;
+    height: 100%;
+    width: 100%;
+  }
+
+  .hero-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(0.45);
+  }
+
+  .right-section {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 4px 25px rgba(0,0,0,0.3);
+  }
+
+  .form-container h1 {
+    color: white;
+  }
+
+  .form-container p {
+    color: #f0f0f0;
+  }
+
+  .input-field {
+    width: 85%;
+    background: rgba(255,255,255,0.85);
+  }
+
+
+}
+
 }
 </style>

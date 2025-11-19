@@ -3,7 +3,6 @@
     <div class="profil-container">
       <h1 class="title">Edit Profil</h1>
 
-      <!-- Foto Profil -->
       <div class="foto-profil text-center">
         <img
           v-if="preview || form.gambar_url"
@@ -18,7 +17,6 @@
         </label>
       </div>
 
-      <!-- Form Profil -->
       <div class="info-profil">
         <label>Nama</label>
         <input v-model="form.nama" type="text" class="input" placeholder="Nama lengkap" />
@@ -39,7 +37,6 @@
 
       </div>
 
-      <!-- Tombol Simpan -->
       <button @click="saveProfil" class="edit-btn" :disabled="loading">
         <span v-if="loading">Menyimpan...</span>
         <span v-else>Simpan Profil</span>
@@ -60,7 +57,7 @@ export default {
         deskripsi: "",
         gambar_url: null,
         foto: null,
-        whatsapp: "", // ⬅️ TAMBAHAN
+        whatsapp: "", 
       },
       preview: null,
       loading: false,
@@ -81,8 +78,8 @@ export default {
         if (data?.data) {
           this.form = {
             ...data.data,
-            foto: null, // jangan hilangkan ini
-            whatsapp: data.data.whatsapp || "", // ⬅️ TAMBAHAN
+            foto: null, 
+            whatsapp: data.data.whatsapp || "", 
           };
         }
       } catch (err) {
@@ -103,7 +100,7 @@ export default {
         const fd = new FormData();
         fd.append("nama", this.form.nama);
         fd.append("deskripsi", this.form.deskripsi);
-        fd.append("whatsapp", this.form.whatsapp); // ⬅️ TAMBAHAN
+        fd.append("whatsapp", this.form.whatsapp); 
 
         if (this.form.foto) {
           fd.append("foto", this.form.foto);
