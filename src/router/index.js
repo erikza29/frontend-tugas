@@ -19,6 +19,7 @@ import DaftarLoker from '../view/pemberi_kerja/daftarloker.vue'
 import PelamarList from '../view/pemberi_kerja/pelamarlist.vue'
 import TambahLoker from '../view/pemberi_kerja/tambahloker.vue'
 import EditLoker from '../view/pemberi_kerja/editloker.vue'
+import Superadmin from '../view/superadmin.vue'
 
 const routes = [
   // === Auth ===
@@ -81,6 +82,11 @@ const routes = [
     component: EditLoker,
     meta: { role: 'pemberi_kerja' },
   },
+  {
+    path: '/superadmin',
+    name: 'superadmin',
+    component: Superadmin,
+  }
 ]
 
 const router = createRouter({

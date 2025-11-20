@@ -66,35 +66,50 @@ async function handleLogin() {
       password: password.value,
     });
 
-    const token = res.data.data.token;
-    const role = res.data.data.role;
-    const userId = res.data.data.user.id;
+    const data = res.data.data;
+
+    const token = data.token;
+    const user = data.user;
+    const isSuperadmin = data.is_superadmin ?? false; // ← penting
 
     if (!token) {
       alert("Token tidak ditemukan dari server!");
       return;
     }
 
+    // Simpan token & user
     localStorage.setItem("token", token);
-    localStorage.setItem("role", role);
-    localStorage.setItem("user_id", userId);
+    localStorage.setItem("user", JSON.stringify(user));
+    localStorage.setItem("is_superadmin", isSuperadmin);
 
-    try {
-      const profilRes = await api.get("/profil", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+    // Ambil profil jika bukan superadmin
+    if (!isSuperadmin) {
+      try {
+        const profilRes = await api.get("/profil", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-      const avatar =
-        profilRes.data?.data?.gambar_url ||
-        "https://i.pravatar.cc/150?img=3";
+        const avatar =
+          profilRes.data?.data?.gambar_url ||
+          "https://i.pravatar.cc/150?img=3";
 
-      localStorage.setItem("avatar_url", avatar);
+        localStorage.setItem("avatar_url", avatar);
 
-      window.dispatchEvent(new Event("avatar-changed"));
-      window.dispatchEvent(new Event("role-changed"));
-    } catch (err) {
-      console.warn("Gagal ambil profil:", err);
+        window.dispatchEvent(new Event("avatar-changed"));
+        window.dispatchEvent(new Event("role-changed"));
+      } catch (err) {
+        console.warn("Gagal ambil profil:", err);
+      }
     }
+
+    // 🔥 Redirect berdasarkan status superadmin
+    if (isSuperadmin) {
+      router.push("/superadmin");
+      return;
+    }
+
+    // 🔥 Redirect normal untuk user biasa
+    const role = data.role;
 
     if (role === "pekerja") {
       router.push("/lokerlist");
@@ -103,11 +118,13 @@ async function handleLogin() {
     } else {
       router.push("/pilih_role");
     }
+
   } catch (err) {
     alert(err.response?.data?.message || "Login gagal");
   }
 }
 </script>
+
 
 <style scoped>
 @import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css");
