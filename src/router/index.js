@@ -83,9 +83,10 @@ const routes = [
     meta: { role: 'pemberi_kerja' },
   },
   {
-    path: '/superadmin',
-    name: 'superadmin',
+    path: "/superadmin",
+    name: "superadmin",
     component: Superadmin,
+    meta: { requiresSuperadmin: true }
   }
 ]
 

@@ -69,48 +69,33 @@ async function handleLogin() {
     const data = res.data.data;
 
     const token = data.token;
+    const role = data.role;
     const user = data.user;
-    const isSuperadmin = data.is_superadmin ?? false; // ← penting
+    const isSuperadmin = data.is_superadmin;
 
-    if (!token) {
-      alert("Token tidak ditemukan dari server!");
-      return;
-    }
-
-    // Simpan token & user
     localStorage.setItem("token", token);
+    localStorage.setItem("role", role);
     localStorage.setItem("user", JSON.stringify(user));
     localStorage.setItem("is_superadmin", isSuperadmin);
 
-    // Ambil profil jika bukan superadmin
-    if (!isSuperadmin) {
-      try {
-        const profilRes = await api.get("/profil", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        const avatar =
-          profilRes.data?.data?.gambar_url ||
-          "https://i.pravatar.cc/150?img=3";
-
-        localStorage.setItem("avatar_url", avatar);
-
-        window.dispatchEvent(new Event("avatar-changed"));
-        window.dispatchEvent(new Event("role-changed"));
-      } catch (err) {
-        console.warn("Gagal ambil profil:", err);
-      }
-    }
-
-    // 🔥 Redirect berdasarkan status superadmin
+    // SUPERADMIN → langsung masuk dashboard
     if (isSuperadmin) {
       router.push("/superadmin");
       return;
     }
 
-    // 🔥 Redirect normal untuk user biasa
-    const role = data.role;
+    // USER BIASA → ambil profil
+    try {
+      const profilRes = await api.get("/profil", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const avatar = profilRes.data?.data?.gambar_url;
+      localStorage.setItem("avatar_url", avatar);
+    } catch (err) {
+      console.warn("Gagal ambil profil");
+    }
 
+    // REDIRECT USER BIASA
     if (role === "pekerja") {
       router.push("/lokerlist");
     } else if (role === "pemberi_kerja") {
@@ -123,7 +108,9 @@ async function handleLogin() {
     alert(err.response?.data?.message || "Login gagal");
   }
 }
+
 </script>
+
 
 
 <style scoped>

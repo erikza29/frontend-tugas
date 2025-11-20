@@ -1,4 +1,5 @@
 <template>
+  
   <nav class="navbar" v-if="showNavbar">
     <div class="left">
       <div class="logo">WW</div>
@@ -47,6 +48,11 @@ const showNavbar = computed(() => {
 });
 
 const fetchProfil = async () => {
+  // ⛔ stop kalau superadmin
+  if (localStorage.getItem("is_superadmin") === "true") {
+    return;
+  }
+
   try {
     const res = await api.get("/profil");
     if (res.data.success) {
@@ -93,6 +99,7 @@ onBeforeUnmount(() => {
   window.removeEventListener("avatar-changed", updateAvatar);
 });
 </script>
+
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&display=swap');
