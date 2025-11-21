@@ -66,48 +66,40 @@ async function handleLogin() {
       password: password.value,
     });
 
-    const token = res.data.data.token;
-    const role = res.data.data.role;
-    const userId = res.data.data.user.id;
+    const token = res.data.token;
+    const user = res.data.user;
 
-    if (!token) {
-      alert("Token tidak ditemukan dari server!");
+    const isSuperAdmin = user.is_superadmin; // ← pastikan ambil dari user
+
+    // simpan storage
+    localStorage.setItem("token", token);
+    localStorage.setItem("user_id", user.id);
+    localStorage.setItem("role", user.role);
+    localStorage.setItem("is_superadmin", isSuperAdmin);
+
+    // redirect superadmin
+    if (isSuperAdmin == 1) {
+      router.push("/superadminview");   // ← sesuai permintaan kamu
       return;
     }
 
-    localStorage.setItem("token", token);
-    localStorage.setItem("role", role);
-    localStorage.setItem("user_id", userId);
-
-    try {
-      const profilRes = await api.get("/profil", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const avatar =
-        profilRes.data?.data?.gambar_url ||
-        "https://i.pravatar.cc/150?img=3";
-
-      localStorage.setItem("avatar_url", avatar);
-
-      window.dispatchEvent(new Event("avatar-changed"));
-      window.dispatchEvent(new Event("role-changed"));
-    } catch (err) {
-      console.warn("Gagal ambil profil:", err);
-    }
-
-    if (role === "pekerja") {
+    // redirect user lain
+    if (user.role === "pekerja") {
       router.push("/lokerlist");
-    } else if (role === "pemberi_kerja") {
+    } else if (user.role === "pemberi_kerja") {
       router.push("/daftarloker");
     } else {
       router.push("/pilih_role");
     }
+
   } catch (err) {
     alert(err.response?.data?.message || "Login gagal");
   }
 }
+
+
 </script>
+
 
 <style scoped>
 @import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css");

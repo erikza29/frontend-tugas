@@ -19,6 +19,7 @@ import DaftarLoker from '../view/pemberi_kerja/daftarloker.vue'
 import PelamarList from '../view/pemberi_kerja/pelamarlist.vue'
 import TambahLoker from '../view/pemberi_kerja/tambahloker.vue'
 import EditLoker from '../view/pemberi_kerja/editloker.vue'
+import SuperAdminView from '../view/SuperAdminView.vue'
 
 const routes = [
   // === Auth ===
@@ -81,6 +82,13 @@ const routes = [
     component: EditLoker,
     meta: { role: 'pemberi_kerja' },
   },
+ {
+  path: '/superadmin',
+  name: 'superadmin',
+  component: SuperAdminView,
+}
+
+
 ]
 
 const router = createRouter({
@@ -90,6 +98,12 @@ const router = createRouter({
 
 // === Middleware Proteksi Login + Role ===
 router.beforeEach((to, from, next) => {
+
+  const isSuperAdmin = localStorage.getItem("is_superadmin");
+
+  if (isSuperAdmin == 1 && to.path !== "/superadmin") {
+    return next("/superadmin");
+  }
   const isLoggedIn = localStorage.getItem('token')
   const userRole = localStorage.getItem('role')
 
