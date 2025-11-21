@@ -1,37 +1,55 @@
 <template>
-  
   <nav class="navbar" v-if="showNavbar">
     <div class="left">
       <div class="logo">WW</div>
-      <div class="app-name">WorkingWork</div>
+      <div class="app-name" v-if="!isSuperadmin">WorkingWork</div>
     </div>
 
-    <div class="menu-toggle" @click="isMenuOpen = !isMenuOpen">
-      <span></span><span></span><span></span>
-    </div>
-
-    <div :class="['right', { open: isMenuOpen }]">
-      <ul class="nav-links">
+    <div class="right">
+      <!-- Menu user biasa -->
+      <ul class="nav-links" v-if="!isSuperadmin">
         <template v-if="role === 'pemberi_kerja'">
-          <li><router-link to="/daftarloker" @click="isMenuOpen = false">Beranda</router-link></li>
+          <li>
+            <router-link to="/daftarloker" @click="isMenuOpen = false">Beranda</router-link>
+          </li>
         </template>
+
         <template v-else-if="role === 'pekerja'">
-          <li><router-link to="/lokerlist" @click="isMenuOpen = false">Beranda</router-link></li>
-          <li><router-link to="/riwayat" @click="isMenuOpen = false">Riwayat</router-link></li>
+          <li>
+            <router-link to="/lokerlist" @click="isMenuOpen = false">Beranda</router-link>
+          </li>
+          <li>
+            <router-link to="/riwayat" @click="isMenuOpen = false">Riwayat</router-link>
+          </li>
         </template>
       </ul>
 
-      <router-link to="/pilih_role" class="switch-role" @click="isMenuOpen = false">Ganti Role</router-link>
-      <router-link to="/profil" class="profile" @click="isMenuOpen = false">
+      <router-link
+        v-if="!isSuperadmin"
+        to="/pilih_role"
+        class="switch-role"
+        @click="isMenuOpen = false"
+      >
+        Ganti Role
+      </router-link>
+
+      <router-link
+        v-if="!isSuperadmin"
+        to="/profil"
+        class="profile"
+        @click="isMenuOpen = false"
+      >
         <img :src="avatarUrl" alt="Avatar" />
       </router-link>
+
+      <!-- Logout selalu tampil -->
       <button class="logout-btn" @click="logout">Logout</button>
     </div>
   </nav>
 </template>
 
 <script setup>
-import { computed, ref, onMounted, onBeforeUnmount } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import api from "@/API/api";
 
@@ -39,22 +57,28 @@ const route = useRoute();
 const router = useRouter();
 
 const role = ref((localStorage.getItem("role") || "").toLowerCase().trim());
+const email = ref(localStorage.getItem("email") || "");
 const avatarUrl = ref(localStorage.getItem("avatar_url") || "https://i.pravatar.cc/150?img=3");
 const isMenuOpen = ref(false);
 
+// Navbar tampil di halaman tertentu
 const showNavbar = computed(() => {
   const hiddenPages = ["/login", "/register", "/pilih_role"];
   return !hiddenPages.includes(route.path);
 });
 
+// Superadmin hanya berdasarkan email saja (versi branch aza)
+const isSuperadmin = computed(() => email.value === "s@s.s");
+
+// Ambil profil hanya untuk user biasa
 const fetchProfil = async () => {
-  // ⛔ stop kalau superadmin
-  if (localStorage.getItem("is_superadmin") === "true") {
-    return;
-  }
+  if (isSuperadmin.value) return; // versi aza
 
   try {
-    const res = await api.get("/profil");
+    const res = await api.get("/profil", {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    });
+
     if (res.data.success) {
       const imgUrl = res.data.data.gambar_url || "https://i.pravatar.cc/150?img=3";
       avatarUrl.value = imgUrl;
@@ -69,6 +93,7 @@ const fetchProfil = async () => {
 const logout = () => {
   localStorage.clear();
   role.value = null;
+  email.value = "";
   avatarUrl.value = "https://i.pravatar.cc/150?img=3";
   router.push("/login");
 };
@@ -99,7 +124,6 @@ onBeforeUnmount(() => {
   window.removeEventListener("avatar-changed", updateAvatar);
 });
 </script>
-
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&display=swap');
@@ -298,4 +322,7 @@ onBeforeUnmount(() => {
     height: 36px;
   }
 }
+
+
+
 </style>
