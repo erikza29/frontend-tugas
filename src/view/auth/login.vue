@@ -1,55 +1,3 @@
-<template>
-  <div class="login-wrapper">
-
-    <div class="left-section">
-      <img src="@/assets/gibran.png" alt="Poster kerja" class="hero-image" />
-    </div>
-
-    <div class="right-section">
-      <div class="form-container">
-        <h1>Login ke Kerjayo</h1>
-        <p>Masuk untuk menemukan pekerjaan impianmu!</p>
-
-        <form @submit.prevent="handleLogin">
-          <div class="input-group">
-            <i class="fas fa-user"></i>
-            <input
-              type="email"
-              placeholder="Email"
-              v-model="email"
-              required
-              class="input-field"
-            />
-          </div>
-
-          <div class="input-group">
-            <i class="fas fa-lock"></i>
-            <input
-              type="password"
-              placeholder="Password"
-              v-model="password"
-              required
-              class="input-field"
-            />
-          </div>
-
-          <button type="submit" class="login-button">MASUK</button>
-        </form>
-
-        <div class="register-link">
-          <p>
-            Belum punya akun?
-            <router-link to="/register" class="link-register">
-              Daftar Sekarang
-            </router-link>
-          </p>
-        </div>
-      </div>
-    </div>
-
-  </div>
-</template>
-
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
@@ -69,21 +17,22 @@ async function handleLogin() {
     const token = res.data.token;
     const user = res.data.user;
 
-    const isSuperAdmin = user.is_superadmin; // ← pastikan ambil dari user
+    const isSuperAdmin = user.is_superadmin; // versi branch AZA
 
     // simpan storage
     localStorage.setItem("token", token);
     localStorage.setItem("user_id", user.id);
     localStorage.setItem("role", user.role);
+    localStorage.setItem("email", user.email);
     localStorage.setItem("is_superadmin", isSuperAdmin);
 
-    // redirect superadmin
+    // SUPERADMIN
     if (isSuperAdmin == 1) {
-      router.push("/superadminview");   // ← sesuai permintaan kamu
+      router.push("/superadmin");
       return;
     }
 
-    // redirect user lain
+    // USER BIASA
     if (user.role === "pekerja") {
       router.push("/lokerlist");
     } else if (user.role === "pemberi_kerja") {
@@ -96,10 +45,7 @@ async function handleLogin() {
     alert(err.response?.data?.message || "Login gagal");
   }
 }
-
-
 </script>
-
 
 <style scoped>
 @import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css");

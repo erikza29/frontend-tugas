@@ -9,16 +9,18 @@ import PilihRole from '../view/auth/pilih_role.vue'
 import LokerList from '../view/pekerja/lokerlist.vue'
 import LokerDetail from '../view/pekerja/lokerdetail.vue'
 
-// === Profil (semua role) ===
+// === Profil ===
 import Profil from '../view/profil/profil.vue'
 import EditProfil from '../view/profil/editprofil.vue'
-import ProfilPelamar from '../view/profil/profilpelamar.vue' // ✅ tambahan
+import ProfilPelamar from '../view/profil/profilpelamar.vue'
 
 // === Pemberi Kerja ===
 import DaftarLoker from '../view/pemberi_kerja/daftarloker.vue'
 import PelamarList from '../view/pemberi_kerja/pelamarlist.vue'
 import TambahLoker from '../view/pemberi_kerja/tambahloker.vue'
 import EditLoker from '../view/pemberi_kerja/editloker.vue'
+
+// === Superadmin (versi branch aza) ===
 import SuperAdminView from '../view/SuperAdminView.vue'
 
 const routes = [
@@ -27,7 +29,7 @@ const routes = [
   { path: '/register', name: 'Register', component: Register },
   { path: '/pilih_role', name: 'PilihRole', component: PilihRole },
 
-  // === Semua role bisa akses ===
+  // === Pekerja & umum ===
   { path: '/lokerlist', name: 'LokerList', component: LokerList },
   {
     path: '/lokerdetail/:id',
@@ -47,11 +49,11 @@ const routes = [
     meta: { role: 'pekerja' },
   },
 
-  // === Profil (umum) ===
+  // === Profil ===
   { path: '/profil', name: 'Profil', component: Profil },
   { path: '/profil/edit', name: 'EditProfil', component: EditProfil },
   {
-    path: '/profil/:id', // ✅ route baru
+    path: '/profil/:id',
     name: 'ProfilPelamar',
     component: ProfilPelamar,
     props: true,
@@ -82,13 +84,13 @@ const routes = [
     component: EditLoker,
     meta: { role: 'pemberi_kerja' },
   },
- {
-  path: '/superadmin',
-  name: 'superadmin',
-  component: SuperAdminView,
-}
 
-
+  // === Superadmin (simple saja) ===
+  {
+    path: '/superadmin',
+    name: 'superadmin',
+    component: SuperAdminView,
+  },
 ]
 
 const router = createRouter({
@@ -96,38 +98,31 @@ const router = createRouter({
   routes,
 })
 
-// === Middleware Proteksi Login + Role ===
+// === Middleware ===
 router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token')
+  const role = (localStorage.getItem('role') || '').toLowerCase()
+  const email = localStorage.getItem('email')
+  const isSuperadmin = email === 's@s.s'
 
-  const isSuperAdmin = localStorage.getItem("is_superadmin");
-
-  if (isSuperAdmin == 1 && to.path !== "/superadmin") {
-    return next("/superadmin");
-  }
-  const isLoggedIn = localStorage.getItem('token')
-  const userRole = localStorage.getItem('role')
-
-  // Jika route butuh role, cek login & role
-  if (to.meta.role) {
-    if (!isLoggedIn) {
-      return next('/login')
-    }
-    if (to.meta.role !== userRole) {
-      return next('/lokerlist') // fallback kalau role beda
-    }
+  // === Superadmin override seluruh akses ===
+  if (isSuperadmin && to.path !== '/superadmin') {
+    return next('/superadmin')
   }
 
-  // Jika belum login & bukan ke halaman publik
-  if (
-    !isLoggedIn &&
-    !['/login', '/register', '/pilih_role'].includes(to.path)
-  ) {
+  // === Cek login ===
+  if (!token && !['/login', '/register', '/pilih_role'].includes(to.path)) {
     return next('/login')
   }
 
-  // Jika sudah login tapi belum pilih role
-  if (isLoggedIn && !userRole && to.path !== '/pilih_role') {
+  // === User sudah login tapi belum pilih role ===
+  if (token && !role && to.path !== '/pilih_role') {
     return next('/pilih_role')
+  }
+
+  // === Cek role di route ===
+  if (to.meta.role && to.meta.role !== role) {
+    return next('/lokerlist')
   }
 
   next()

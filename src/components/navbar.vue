@@ -13,6 +13,7 @@
             <router-link to="/daftarloker" @click="isMenuOpen = false">Beranda</router-link>
           </li>
         </template>
+
         <template v-else-if="role === 'pekerja'">
           <li>
             <router-link to="/lokerlist" @click="isMenuOpen = false">Beranda</router-link>
@@ -48,7 +49,7 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted, onBeforeUnmount } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import api from "@/API/api";
 
@@ -56,7 +57,7 @@ const route = useRoute();
 const router = useRouter();
 
 const role = ref((localStorage.getItem("role") || "").toLowerCase().trim());
-const email = ref(localStorage.getItem("email") || ""); // email dari login
+const email = ref(localStorage.getItem("email") || "");
 const avatarUrl = ref(localStorage.getItem("avatar_url") || "https://i.pravatar.cc/150?img=3");
 const isMenuOpen = ref(false);
 
@@ -66,17 +67,18 @@ const showNavbar = computed(() => {
   return !hiddenPages.includes(route.path);
 });
 
-// Superadmin hanya lihat logo + logout
+// Superadmin hanya berdasarkan email saja (versi branch aza)
 const isSuperadmin = computed(() => email.value === "s@s.s");
 
 // Ambil profil hanya untuk user biasa
 const fetchProfil = async () => {
-  if (isSuperadmin.value) return;
+  if (isSuperadmin.value) return; // versi aza
 
   try {
     const res = await api.get("/profil", {
       headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
     });
+
     if (res.data.success) {
       const imgUrl = res.data.data.gambar_url || "https://i.pravatar.cc/150?img=3";
       avatarUrl.value = imgUrl;
@@ -122,8 +124,6 @@ onBeforeUnmount(() => {
   window.removeEventListener("avatar-changed", updateAvatar);
 });
 </script>
-
-
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&display=swap');
